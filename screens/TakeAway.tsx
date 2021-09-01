@@ -20,11 +20,10 @@ export default function TakeAwayScreen({ navigation }: RootTabScreenProps<'TakeA
   ]
   return (
     <View style={styles.container}>
-      <View style={[{ flex: 1, flexDirection: 'row', maxHeight: '8%' }]}>
+      <View style={[{ flexDirection: 'row' }]}>
         <TextInput
           style={[styles.input, { flex: 1 }]}
           // onChangeText={onChangeNumber}
-          // value={number}
           placeholder="Search..."
           keyboardType="numeric"
         />
@@ -42,7 +41,6 @@ export default function TakeAwayScreen({ navigation }: RootTabScreenProps<'TakeA
         ItemSeparatorComponent={_listItemSeparator}
         renderItem={({ item, index }) => _renderOrder(item, index)}
       >
-
       </FlatList>
     </View>
   );
