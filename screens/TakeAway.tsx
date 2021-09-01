@@ -50,7 +50,6 @@ export default function TakeAwayScreen({ navigation }: RootTabScreenProps<'TakeA
     return (
       <View style={[styles.item, styles.orderLI, { marginTop: index == 0 ? 30 : 0 }]}>
         <View style={[{ flex: 2 }]}>
-          {/* <Text>{order.InvoiceNo}</Text> */}
           <TouchableOpacity style={[{ marginBottom: 10 }]}
             onPress={() => _viewOrderDetails(item)}>
             <Text style={[styles.linkText]}>#{order.InvoiceNo}</Text>
