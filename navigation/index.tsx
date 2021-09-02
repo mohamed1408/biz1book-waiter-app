@@ -20,6 +20,7 @@ import LinkingConfiguration from './LinkingConfiguration';
 import TakeAwayScreen from '../screens/TakeAway';
 import DeliveryScreen from '../screens/Delivery';
 import OrderDetailsScreen from '../screens/OrderDetails';
+import Cart from '../screens/Cart';
 
 export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeName }) {
   return (
@@ -45,6 +46,7 @@ function RootNavigator() {
       <Stack.Group screenOptions={{ presentation: 'modal' }}>
         <Stack.Screen name="Modal" component={ModalScreen} />
         <Stack.Screen name="OrderDetails" component={OrderDetailsScreen} />
+        <Stack.Screen name="Cart" component={Cart} />
       </Stack.Group>
     </Stack.Navigator>
   );

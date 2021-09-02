@@ -6,6 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import EditScreenInfo from '../components/EditScreenInfo';
 import { Text, View } from '../components/Themed';
 import { Order, OrderItem } from '../types';
+import { category, product, orders } from '../sampledata.json'
 
 interface IProps {
 }
@@ -49,7 +50,6 @@ class OrderDetails extends React.Component<IProps, IState> {
                 <Text style={[{ flex: 1, alignSelf: 'center', color: '#2f95dc', fontSize: 16, fontWeight: 'bold' }]}>product</Text>
                 <Text style={[{ flex: 1, alignSelf: 'center', color: '#2f95dc', fontSize: 16, fontWeight: 'bold' }]}>Quantity</Text>
                 <Text style={[{ flex: 1, alignSelf: 'center', color: '#2f95dc', fontSize: 16, fontWeight: 'bold' }]}>Amount</Text>
-                {/* <Text style={[{ flex: 1, alignSelf: 'center', color: '#2f95dc', fontSize: 16, fontWeight: 'bold' }]}>Status</Text> */}
             </View>
         )
     }

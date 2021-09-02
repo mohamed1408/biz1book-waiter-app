@@ -5,9 +5,9 @@ import { Ionicons } from '@expo/vector-icons';
 // import EditScreenInfo from '../components/EditScreenInfo';
 // import { View as CustomView } from '../components/Themed';
 import { orders } from '../sampledata.json'
-import { Order } from '../types';
+import { Order, RootTabScreenProps } from '../types';
 
-export default function DeliveryScreen() {
+export default function DeliveryScreen({ navigation }: RootTabScreenProps<'Delivery'>) {
   const orderstatuses = [
     { sid: -1, name: "cancelled" },
     { sid: 0, name: "Placed" },
@@ -29,7 +29,7 @@ export default function DeliveryScreen() {
         />
         <TouchableOpacity
           style={[styles.button, { flex: 1, flexDirection: 'row', width: 40 }]}
-          onPress={() => Alert.alert('Simple Button pressed')}>
+          onPress={() => navigation.navigate('Cart')}>
           <Ionicons size={20} name="add-sharp" color="white" style={[{ marginRight: 10 }]} />
           <Text style={[{ color: 'white' }]}>New Delivery</Text>
         </TouchableOpacity>

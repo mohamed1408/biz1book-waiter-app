@@ -6,27 +6,31 @@ import { io, Socket } from "socket.io-client";
 import useCachedResources from './hooks/useCachedResources';
 import useColorScheme from './hooks/useColorScheme';
 import Navigation from './navigation';
+import { ThemeContext, Theme } from './contexts/SocketContext'
 
 export default function App() {
+  const [theme, setTheme] = React.useState(Theme.Light);
   const isLoadingComplete = useCachedResources();
   const colorScheme = useColorScheme();
 
-  const socket: Socket = io("http://192.168.1.2:8000")
+  const socket: Socket = io("http://192.168.1.3:8000")
   socket.on("connect", () => {
     console.log("android connected to socket io")
   })
   socket.on("connectedusers", (users) => {
-    console.log(users)
+    console.log("users")
   })
 
   if (!isLoadingComplete) {
     return null;
   } else {
     return (
-      <SafeAreaProvider>
-        <Navigation colorScheme={colorScheme} />
-        <StatusBar />
-      </SafeAreaProvider>
+      <ThemeContext.Provider value={{ theme, setTheme }}>
+        <SafeAreaProvider>
+          <Navigation colorScheme={theme} />
+          <StatusBar />
+        </SafeAreaProvider>
+      </ThemeContext.Provider>
     );
   }
 }
