@@ -7,7 +7,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // import { View as CustomView } from '../components/Themed';
 import { orders } from '../sampledata.json'
 import { Order, RootTabScreenProps } from '../types';
-import { useTheme, Theme } from '../contexts/SocketContext'
+import { useSocket, useSocketUrl } from '../contexts/context'
+import { io } from 'socket.io-client';
 
 export default function TakeAwayScreen({ navigation }: RootTabScreenProps<'TakeAway'>) {
   const orderstatuses = [
@@ -19,7 +20,8 @@ export default function TakeAwayScreen({ navigation }: RootTabScreenProps<'TakeA
     { sid: 4, name: "Dispatched" },
     { sid: 5, name: "Delivered" }
   ]
-  const { theme, setTheme } = useTheme();
+  const { url, setUrl } = useSocketUrl();
+  const { socket, connect } = useSocket();
   return (
     <View style={styles.container}>
       <View style={[{ flexDirection: 'row' }]}>
@@ -31,7 +33,7 @@ export default function TakeAwayScreen({ navigation }: RootTabScreenProps<'TakeA
         />
         <TouchableOpacity
           style={[styles.button, { flex: 1, flexDirection: 'row', width: 40 }]}
-          onPress={() => contextTest()}>
+          onPress={() => navigation.navigate('Cart')}>
           <Ionicons size={20} name="add-sharp" color="white" style={[{ marginRight: 10 }]} />
           <Text style={[{ color: 'white' }]}>New Take Away</Text>
         </TouchableOpacity>
@@ -45,7 +47,6 @@ export default function TakeAwayScreen({ navigation }: RootTabScreenProps<'TakeA
         keyExtractor={(item, index) => index.toString()}
       >
       </FlatList>
-      <Text>{theme}</Text>
     </View>
   );
 
@@ -96,10 +97,9 @@ export default function TakeAwayScreen({ navigation }: RootTabScreenProps<'TakeA
   }
 
   function contextTest() {
-    console.log("context text")
-
-    setTheme(theme == Theme.Dark? Theme.Light : Theme.Dark)
-    console.log(theme, typeof(theme))
+    setUrl("http://192.168.1.3:8000")
+    connect(io(url))
+    // socket.emit("testEmit", "test success")
   }
 }
 

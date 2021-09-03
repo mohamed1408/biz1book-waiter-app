@@ -26,6 +26,7 @@ interface IState {
     sectionList: any
     screenHeight: number
     screenWidth: number
+    ptImages: any
 }
 
 class Cart extends React.Component<IProps, IState> {
@@ -56,7 +57,13 @@ class Cart extends React.Component<IProps, IState> {
             categoryFilter: '',
             sectionList: null,
             screenHeight: 0,
-            screenWidth: 0
+            screenWidth: 0,
+            ptImages: {
+                "1": images.veg,
+                "2": images.non_veg,
+                "3": images.egg,
+                "4": images.none
+            }
         }
     }
 
@@ -76,10 +83,10 @@ class Cart extends React.Component<IProps, IState> {
                 <View style={[{ flex: 3 }]}>
                     <Image
                         style={[{ width: 20, height: 20, marginBottom: 1 }]}
-                        source={product.ProductTypeId == 1 ? images.veg : images.non_veg}
+                        source={this.state.ptImages[product.ProductTypeId.toString()]}
                     />
                     <Text style={[{ fontWeight: 'bold', flex: 10, paddingBottom: 5 }]}>{product.Product}</Text>
-                    <Text style={[{ fontWeight: '100', flex: 1 }]}>₹ {product.Price} ({product.Quantity})</Text>
+                    <Text style={[{ fontWeight: '100', flex: 1 }]}>₹ {product.Price} ({product.ProductTypeId})</Text>
                 </View>
                 <View style={[{ flex: 1, justifyContent: 'center' }]}>
                     {(!product.Quantity)
