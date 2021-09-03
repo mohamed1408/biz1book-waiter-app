@@ -7,7 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // import { View as CustomView } from '../components/Themed';
 import { orders } from '../sampledata.json'
 import { Order, RootTabScreenProps } from '../types';
-import { useSocket, useSocketUrl } from '../contexts/context'
+import { useSocket } from '../contexts/context'
 import { io } from 'socket.io-client';
 
 export default function TakeAwayScreen({ navigation }: RootTabScreenProps<'TakeAway'>) {
@@ -20,7 +20,7 @@ export default function TakeAwayScreen({ navigation }: RootTabScreenProps<'TakeA
     { sid: 4, name: "Dispatched" },
     { sid: 5, name: "Delivered" }
   ]
-  const { url, setUrl } = useSocketUrl();
+  // const { url, setUrl } = useSocketUrl();
   const { socket, connect } = useSocket();
   return (
     <View style={styles.container}>
@@ -97,8 +97,8 @@ export default function TakeAwayScreen({ navigation }: RootTabScreenProps<'TakeA
   }
 
   function contextTest() {
-    setUrl("http://192.168.1.3:8000")
-    connect(io(url))
+    // setUrl("http://192.168.1.3:8000")
+    // connect(io(url))
     // socket.emit("testEmit", "test success")
   }
 }
