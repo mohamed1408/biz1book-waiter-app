@@ -20,8 +20,8 @@ const execute = async (url: string, method = 'GET', { params = {}, queries = {},
     return await axios(options);
 };
 
-const getdineindata = async (url: string) => {
-    return await (await axios.post(url, ["diningarea", "diningtable"])).data
+const getdineindata = (url: string) => {
+    return axios.post(url, ["diningarea", "diningtable"])
 }
 
 export default {

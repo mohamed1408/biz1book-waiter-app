@@ -1,83 +1,120 @@
 import * as React from 'react';
-import { Dimensions, StyleSheet } from 'react-native';
+import { Dimensions, StyleSheet, TouchableOpacity } from 'react-native';
 
 import EditScreenInfo from '../components/EditScreenInfo';
 import { Text, View } from '../components/Themed';
-import { SocketUrlContext } from '../contexts/context';
+import { SocketUrlContext, useSocketUrl, useSocket } from '../contexts/context';
 import api from '../utils/Api'
 import axios from 'axios'
 import { FlatList } from 'react-native-gesture-handler';
-interface IProps {
+import { RootTabScreenProps } from '../types';
+import { useEffect, useState } from 'react';
 
-}
+export default function DineInScreen({ navigation }: RootTabScreenProps<'DineIn'>) {
 
-interface IState {
-  url: string
-  areas?: any;
-  tables?: any;
-  numColumns: number;
-  // list: any
-  // categoryFilter: string
-  // sectionList: any
-  screenHeight: number
-  screenWidth: number
-  // ptImages: any
-}
+  const { url, setUrl } = useSocketUrl();
+  const { socket } = useSocket();
 
-export default class DineInScreen extends React.Component<IProps, IState> {
-  static contextType = SocketUrlContext
+  // const [count, setCount] = useState(1);
 
-  constructor(props: IProps) {
-    super(props);
+  // useEffect(() => {
+  //   setCount(1);
+  // }, [setCount]);
 
-    this._renderTable = this._renderTable.bind(this)
+  const anyArr: any[] = []
+  const [areas, setAreas] = useState(anyArr);
+  const [tables, setTables] = useState(anyArr);
 
-    this.state = {
-      url: "",
-      areas: [],
-      tables: [],
-      screenWidth: Dimensions.get('window').width,
-      screenHeight: Dimensions.get('window').height,
-      numColumns: 3
+  const cache: any = {}
+
+  useEffect(() => {
+    const fetchData = async () => {
+      console.log('using effect');
+      const response = await api.getdineindata(new URL('getdata', url).href)
+      const data = await response.data
+      cache["diningarea"] = data.diningarea
+      cache["diningtable"] = data.diningtable
+      setAreas(cache.diningarea)
+      setTables(cache.diningtable)
+      _eventregistration()
+    };
+
+    fetchData();
+  }, []);
+
+  const screenWidth = Dimensions.get('window').width
+  const screenHeight = Dimensions.get('window').height
+  const numColumns = 3
+
+  function _getData() {
+    // console.log("fetching data")
+    api.getdineindata(new URL('getdata', url).href).then(response => {
+      setAreas(response.data.diningarea)
+      setTables(response.data.diningtable)
+    })
+  }
+
+  function _onTableStatusChange(tableKey: string, statusid: number) {
+    cache.diningtable.forEach((tbl: any) => {
+      if (tbl.TableKey == tableKey) {
+        console.log(tbl.TableName)
+        tbl.TableStatusId = statusid
+      }
+    })
+    setTables(cache.diningtable)
+  }
+  function _eventregistration() {
+    console.log("event registration ...")
+
+    // socket.off("table:lock")
+    // socket.off("table:release")
+
+    socket.on("table:lock", (payload) => {
+      console.log("table:lock", payload.tableKey)
+      _onTableStatusChange(payload.tableKey, 1)
+    })
+
+    socket.on("table:release", (payload) => {
+      console.log("table:release", payload.tableKey)
+      _onTableStatusChange(payload.tableKey, 0)
+    })
+
+    socket.on("tableorder:update", (payload) => {
+      console.log("tableorder:update")
+      _getData()
+    })
+  }
+  function _tableColor(tblstsid: number) {
+    if (tblstsid == 0) {
+      return 'white'
+    } else if (tblstsid == 1) {
+      console.log("pending")
+      return '#3ba25f'
     }
   }
 
-  componentDidMount = async () => {
-    const urlContext = this.context
-    console.log(urlContext)
-    const dineindata = await api.getdineindata(new URL('getdata', urlContext.url).href)
-    this.setState({ areas: dineindata.diningarea, tables: dineindata.diningtable })
-  }
-
-  _tableColor(tblstsid: number) {
-
-  }
-
-  _renderTable(table: any) {
-    const tableW = ((this.state.screenWidth - styles.tblList.padding * 2) / 3) - styles.table.margin * 2
+  function _renderTable(table: any) {
+    const tableW = ((screenWidth - styles.tblList.padding * 2) / 3) - styles.table.margin * 2
     const oarr = [111, 112, 113]
     return (
-      <View style={[styles.table, { width: tableW, borderBottomColor: oarr.includes(table.item.Id) ? 'red' : 'white' }]}>
+      <TouchableOpacity style={[styles.table, { width: tableW, borderBottomColor: _tableColor(table.item.TableStatusId) }]}>
         <Text>{table.item.TableName}</Text>
-      </View>
+      </TouchableOpacity>
     )
   }
 
-  render() {
-    const { areas, tables, numColumns } = this.state
-    return (
-      <View style={styles.container}>
-        <View style={[styles.tblList]}>
-          <FlatList
-            data={tables}
-            renderItem={this._renderTable}
-            keyExtractor={item => item.TableKey}
-            numColumns={numColumns}
-          />
-        </View>
+  return (
+    <View style={styles.container}>
+      <View style={[styles.tblList]}>
+        <FlatList
+          data={tables}
+          renderItem={_renderTable}
+          keyExtractor={(item, index) => index.toString()}
+          numColumns={numColumns}
+        />
       </View>
-    );
-  }
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({

@@ -40,6 +40,7 @@ export default function DeliveryScreen({ navigation }: RootTabScreenProps<'Deliv
         ListHeaderComponentStyle={[{backgroundColor: '#c4e7ff'}]}
         ItemSeparatorComponent={_listItemSeparator}
         renderItem={({ item, index }) => _renderOrder(item, index)}
+        keyExtractor={(item, index) => index.toString()}
       >
 
       </FlatList>
