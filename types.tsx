@@ -38,6 +38,19 @@ export type RootTabScreenProps<Screen extends keyof RootTabParamList> = Composit
   BottomTabScreenProps<RootTabParamList, Screen>,
   NativeStackScreenProps<RootStackParamList>
 >;
+
+export type OrderPayload = {
+  OrderTypeId: number;
+  Items: Array<any>;
+  UserId: number;
+  Transactions: Array<Transaction>;
+  DeliveryDateTime?: string;
+  CustomerDetails: CustomerDetails;
+  InvoiceNo: string;
+  DiningTableId?: number;
+  _id: string
+}
+
 export type Order = {
   Id: number
   AggregatorOrderId: number
@@ -115,6 +128,8 @@ export type Order = {
   deliveryclicked: boolean
   alltransactions: any
   appversion: string
+  app: string
+  UserName: string
 }
 
 export type KOT = {

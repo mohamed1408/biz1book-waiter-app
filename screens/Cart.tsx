@@ -68,12 +68,16 @@ class Cart extends React.Component<IProps, IState> {
     }
 
     componentDidMount = async () => {
+        const orderData: string = await AsyncStorage.getItem('@order:edit') || '{}'
+        const order: Order = JSON.parse(orderData)
+        console.log(order.diningtablekey, order.UserName, order.Items.length)
         var categories: any = category.filter(x => x.ParentId != 0)
-        console.log(categories.length, category.length)
+        order.Items.forEach(it => {
+            product.filter(x => x.Id == it.ProductId)[0].Quantity = it.Quantity
+        })
         categories.forEach((cat: any) => {
             cat.Parent = category.filter(x => x.Id == cat.ParentId)[0].Category
             cat.data = product.filter(x => x.CategoryId == cat.Id)
-            console.log(cat.Parent, '>', cat.Category, cat.data.length)
         })
         this.setState({ categories: category, products: product, cartData: categories, screenHeight: Dimensions.get('window').height, screenWidth: Dimensions.get('window').width })
     }
@@ -86,7 +90,7 @@ class Cart extends React.Component<IProps, IState> {
                         source={this.state.ptImages[product.ProductTypeId.toString()]}
                     />
                     <Text style={[{ fontWeight: 'bold', flex: 10, paddingBottom: 5 }]}>{product.Product}</Text>
-                    <Text style={[{ fontWeight: '100', flex: 1 }]}>₹ {product.Price} ({product.ProductTypeId})</Text>
+                    <Text style={[{ fontWeight: '100', flex: 1 }]}>₹ {product.Price} ({product.Quantity})</Text>
                 </View>
                 <View style={[{ flex: 1, justifyContent: 'center' }]}>
                     {(!product.Quantity)

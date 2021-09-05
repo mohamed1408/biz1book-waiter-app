@@ -5,10 +5,12 @@ import EditScreenInfo from '../components/EditScreenInfo';
 import { Text, View } from '../components/Themed';
 import { SocketUrlContext, useSocketUrl, useSocket } from '../contexts/context';
 import api from '../utils/Api'
+import oHelper from '../utils/orderHelper'
 import axios from 'axios'
 import { FlatList } from 'react-native-gesture-handler';
-import { RootTabScreenProps } from '../types';
+import { Order, OrderPayload, RootTabScreenProps } from '../types';
 import { useEffect, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function DineInScreen({ navigation }: RootTabScreenProps<'DineIn'>) {
 
@@ -30,12 +32,12 @@ export default function DineInScreen({ navigation }: RootTabScreenProps<'DineIn'
   useEffect(() => {
     const fetchData = async () => {
       console.log('using effect');
-      const response = await api.getdineindata(new URL('getdata', url).href)
+      const response = await api.getdineindata(new URL('getdbdata', url).href)
       const data = await response.data
       cache["diningarea"] = data.diningarea
       cache["diningtable"] = data.diningtable
       setAreas(cache.diningarea)
-      setTables(cache.diningtable)
+      setTables(_sortTable(cache.diningtable))
       _eventregistration()
     };
 
@@ -46,13 +48,30 @@ export default function DineInScreen({ navigation }: RootTabScreenProps<'DineIn'
   const screenHeight = Dimensions.get('window').height
   const numColumns = 3
 
-  function _getData() {
-    // console.log("fetching data")
-    api.getdineindata(new URL('getdata', url).href).then(response => {
-      setAreas(response.data.diningarea)
-      setTables(response.data.diningtable)
+  function _sortTable(tables: any[]) {
+    console.log(tables.length)
+    return tables.sort((_a, _b) => {
+      if (_a.TableName.toUpperCase() < _b.TableName.toUpperCase()) {
+        return -1;
+      }
+      if (_a.TableName.toUpperCase() > _b.TableName.toUpperCase()) {
+        return 1;
+      }
+      return 0;
     })
   }
+
+  function _getData() {
+    console.log("fetching data")
+    api.getdineindata(new URL('getdbdata', url).href).then(response => {
+      setAreas(response.data.diningarea)
+      setTables(_sortTable(response.data.diningtable))
+    })
+  }
+
+  // function _getOrder(tableKey: string) {
+  //   return api.getdata(new URL('finddata', url).href, { dbname: "tableorders", findQuery: { diningtablekey: tableKey } })
+  // }
 
   function _onTableStatusChange(tableKey: string, statusid: number) {
     cache.diningtable.forEach((tbl: any) => {
@@ -79,11 +98,37 @@ export default function DineInScreen({ navigation }: RootTabScreenProps<'DineIn'
       _onTableStatusChange(payload.tableKey, 0)
     })
 
-    socket.on("tableorder:update", (payload) => {
+    socket.on("tableorder:update", (_payload) => {
       console.log("tableorder:update")
       _getData()
     })
   }
+  function _orderOptions(tablekey: string) {
+    const options = {
+      tableid: tablekey.split('_')[0],
+      typeid: 1,
+      tablekey: tablekey,
+      username: "mohamed"
+    }
+    return options
+  }
+  async function _editOrder(tableKey: string) {
+    const order_arr = await (await api.getdata(new URL('finddata', url).href, { dbname: "tableorders", findQuery: { diningtablekey: tableKey } })).data
+    await AsyncStorage.removeItem('@order:edit')
+    if (order_arr[0])
+      await AsyncStorage.setItem(
+        '@order:edit',
+        JSON.stringify(order_arr[0])
+      );
+    else
+      await AsyncStorage.setItem(
+        '@order:edit',
+        JSON.stringify(oHelper.neworder(_orderOptions(tableKey)))
+      );
+    socket.emit('order:create')
+    navigation.navigate('Cart')
+  }
+
   function _tableColor(tblstsid: number) {
     if (tblstsid == 0) {
       return 'white'
@@ -97,8 +142,11 @@ export default function DineInScreen({ navigation }: RootTabScreenProps<'DineIn'
     const tableW = ((screenWidth - styles.tblList.padding * 2) / 3) - styles.table.margin * 2
     const oarr = [111, 112, 113]
     return (
-      <TouchableOpacity style={[styles.table, { width: tableW, borderBottomColor: _tableColor(table.item.TableStatusId) }]}>
-        <Text>{table.item.TableName}</Text>
+      <TouchableOpacity
+        onPress={() => _editOrder(table.item.TableKey)}
+        style={[styles.table, { width: tableW, borderBottomColor: _tableColor(table.item.TableStatusId) }]}>
+        <Text style={[{ fontWeight: 'bold', fontSize: 15 }]}>{table.item.TableName}</Text>
+        <Text style={[{ color: '#5f5f5f' }]}>{table.item.UserName}</Text>
       </TouchableOpacity>
     )
   }
@@ -109,7 +157,7 @@ export default function DineInScreen({ navigation }: RootTabScreenProps<'DineIn'
         <FlatList
           data={tables}
           renderItem={_renderTable}
-          keyExtractor={(item, index) => index.toString()}
+          keyExtractor={(_item, index) => index.toString()}
           numColumns={numColumns}
         />
       </View>
