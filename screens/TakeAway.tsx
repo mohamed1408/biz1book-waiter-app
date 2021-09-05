@@ -2,12 +2,14 @@ import * as React from 'react';
 import { StyleSheet, FlatList, Text, View, TouchableOpacity, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import oHelper from '../utils/orderHelper'
+import api from '../utils/Api'
 
 // import EditScreenInfo from '../components/EditScreenInfo';
 // import { View as CustomView } from '../components/Themed';
 import { orders } from '../sampledata.json'
 import { Order, RootTabScreenProps } from '../types';
-import { useSocket } from '../contexts/context'
+import { useSocketUrl, useSocket } from '../contexts/context';
 import { io } from 'socket.io-client';
 
 export default function TakeAwayScreen({ navigation }: RootTabScreenProps<'TakeAway'>) {
@@ -21,7 +23,30 @@ export default function TakeAwayScreen({ navigation }: RootTabScreenProps<'TakeA
     { sid: 5, name: "Delivered" }
   ]
   // const { url, setUrl } = useSocketUrl();
-  const { socket, connect } = useSocket();
+  const { url, setUrl } = useSocketUrl();
+  const { socket } = useSocket();
+
+  function _orderOptions() {
+    const options = {
+      tableid: null,
+      typeid: 2,
+      tablekey: null,
+      username: "mohamed",
+      userid: null
+    }
+    return options
+  }
+
+  async function _newOrder() {
+    await AsyncStorage.removeItem('@order:edit')
+    await AsyncStorage.setItem(
+      '@order:edit',
+      JSON.stringify(oHelper.neworder(_orderOptions()))
+    );
+    // socket.emit('order:create', oHelper.newPayload(_orderOptions()))
+    navigation.navigate('Cart')
+  }
+
   return (
     <View style={styles.container}>
       <View style={[{ flexDirection: 'row' }]}>
@@ -33,7 +58,7 @@ export default function TakeAwayScreen({ navigation }: RootTabScreenProps<'TakeA
         />
         <TouchableOpacity
           style={[styles.button, { flex: 1, flexDirection: 'row', width: 40 }]}
-          onPress={() => navigation.navigate('Cart')}>
+          onPress={() => _newOrder()}>
           <Ionicons size={20} name="add-sharp" color="white" style={[{ marginRight: 10 }]} />
           <Text style={[{ color: 'white' }]}>New Take Away</Text>
         </TouchableOpacity>

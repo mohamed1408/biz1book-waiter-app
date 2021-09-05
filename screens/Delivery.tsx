@@ -1,11 +1,14 @@
 import * as React from 'react';
 import { StyleSheet, FlatList, Text, View, Alert, TouchableOpacity, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// import EditScreenInfo from '../components/EditScreenInfo';
-// import { View as CustomView } from '../components/Themed';
 import { orders } from '../sampledata.json'
 import { Order, RootTabScreenProps } from '../types';
+import { useSocket, useSocketUrl } from '../contexts/context';
+
+import oHelper from '../utils/orderHelper'
+import api from '../utils/Api'
 
 export default function DeliveryScreen({ navigation }: RootTabScreenProps<'Delivery'>) {
   const orderstatuses = [
@@ -17,6 +20,30 @@ export default function DeliveryScreen({ navigation }: RootTabScreenProps<'Deliv
     { sid: 4, name: "Dispatched" },
     { sid: 5, name: "Delivered" }
   ]
+  const { url, setUrl } = useSocketUrl();
+  const { socket } = useSocket();
+
+  function _orderOptions() {
+    const options = {
+      tableid: null,
+      typeid: 2,
+      tablekey: null,
+      username: "mohamed",
+      userid: null
+    }
+    return options
+  }
+
+  async function _newOrder() {
+    await AsyncStorage.removeItem('@order:edit')
+    await AsyncStorage.setItem(
+      '@order:edit',
+      JSON.stringify(oHelper.neworder(_orderOptions()))
+    );
+    // socket.emit('order:create', oHelper.newPayload(_orderOptions()))
+    navigation.navigate('Cart')
+  }
+
   return (
     <View style={styles.container}>
       <View style={[{ flex: 1, flexDirection: 'row', maxHeight: '8%' }]}>
@@ -37,12 +64,10 @@ export default function DeliveryScreen({ navigation }: RootTabScreenProps<'Deliv
       <FlatList
         data={orders}
         ListHeaderComponent={_listHeader}
-        ListHeaderComponentStyle={[{backgroundColor: '#c4e7ff'}]}
+        ListHeaderComponentStyle={[{ backgroundColor: '#c4e7ff' }]}
         ItemSeparatorComponent={_listItemSeparator}
         renderItem={({ item, index }) => _renderOrder(item, index)}
-        keyExtractor={(item, index) => index.toString()}
-      >
-
+        keyExtractor={(item, index) => index.toString()}>
       </FlatList>
     </View>
   );

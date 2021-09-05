@@ -18,13 +18,13 @@ export default function App() {
   // const socket: Socket = io("http://192.168.1.3:8000")
   // connect()
   socket.on("connect", () => {
-    console.log("android connected to socket io")
+    // console.log("android connected to socket io")
   })
   socket.on("connectedusers", (users) => {
-    console.log("users", url)
+    // console.log("users", url)
   })
   socket.on("testback", (data) => {
-    console.log("testback",data)
+    // console.log("testback",data)
   })
 
   if (!isLoadingComplete) {

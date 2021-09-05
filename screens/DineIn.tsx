@@ -31,7 +31,7 @@ export default function DineInScreen({ navigation }: RootTabScreenProps<'DineIn'
 
   useEffect(() => {
     const fetchData = async () => {
-      console.log('using effect');
+      // console.log('using effect');
       const response = await api.getdineindata(new URL('getdbdata', url).href)
       const data = await response.data
       cache["diningarea"] = data.diningarea
@@ -49,7 +49,7 @@ export default function DineInScreen({ navigation }: RootTabScreenProps<'DineIn'
   const numColumns = 3
 
   function _sortTable(tables: any[]) {
-    console.log(tables.length)
+    // console.log(tables.length)
     return tables.sort((_a, _b) => {
       if (_a.TableName.toUpperCase() < _b.TableName.toUpperCase()) {
         return -1;
@@ -62,7 +62,7 @@ export default function DineInScreen({ navigation }: RootTabScreenProps<'DineIn'
   }
 
   function _getData() {
-    console.log("fetching data")
+    // console.log("fetching data")
     api.getdineindata(new URL('getdbdata', url).href).then(response => {
       setAreas(response.data.diningarea)
       setTables(_sortTable(response.data.diningtable))
@@ -76,39 +76,40 @@ export default function DineInScreen({ navigation }: RootTabScreenProps<'DineIn'
   function _onTableStatusChange(tableKey: string, statusid: number) {
     cache.diningtable.forEach((tbl: any) => {
       if (tbl.TableKey == tableKey) {
-        console.log(tbl.TableName)
+        // console.log(tbl.TableName)
         tbl.TableStatusId = statusid
       }
     })
     setTables(cache.diningtable)
   }
   function _eventregistration() {
-    console.log("event registration ...")
+    // console.log("event registration ...")
 
     // socket.off("table:lock")
     // socket.off("table:release")
 
     socket.on("table:lock", (payload) => {
-      console.log("table:lock", payload.tableKey)
+      // console.log("table:lock", payload.tableKey)
       _onTableStatusChange(payload.tableKey, 1)
     })
 
     socket.on("table:release", (payload) => {
-      console.log("table:release", payload.tableKey)
+      // console.log("table:release", payload.tableKey)
       _onTableStatusChange(payload.tableKey, 0)
     })
 
     socket.on("tableorder:update", (_payload) => {
-      console.log("tableorder:update")
+      // console.log("tableorder:update")
       _getData()
     })
   }
   function _orderOptions(tablekey: string) {
     const options = {
-      tableid: tablekey.split('_')[0],
+      tableid: +tablekey.split('_')[0],
       typeid: 1,
       tablekey: tablekey,
-      username: "mohamed"
+      username: "mohamed",
+      userid: null
     }
     return options
   }
@@ -120,12 +121,13 @@ export default function DineInScreen({ navigation }: RootTabScreenProps<'DineIn'
         '@order:edit',
         JSON.stringify(order_arr[0])
       );
-    else
+    else {
       await AsyncStorage.setItem(
         '@order:edit',
         JSON.stringify(oHelper.neworder(_orderOptions(tableKey)))
       );
-    socket.emit('order:create')
+      socket.emit('order:create', oHelper.newPayload(_orderOptions(tableKey)))
+    }
     navigation.navigate('Cart')
   }
 
@@ -133,7 +135,7 @@ export default function DineInScreen({ navigation }: RootTabScreenProps<'DineIn'
     if (tblstsid == 0) {
       return 'white'
     } else if (tblstsid == 1) {
-      console.log("pending")
+      // console.log("pending")
       return '#3ba25f'
     }
   }

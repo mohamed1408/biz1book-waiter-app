@@ -41,13 +41,14 @@ export type RootTabScreenProps<Screen extends keyof RootTabParamList> = Composit
 
 export type OrderPayload = {
   OrderTypeId: number;
-  Items: Array<any>;
+  Items: Array<OrderItem>;
   UserId: number;
   Transactions: Array<Transaction>;
   DeliveryDateTime?: string;
-  CustomerDetails: CustomerDetails;
+  CustomerDetails?: CustomerDetails;
   InvoiceNo: string;
   DiningTableId?: number;
+  DiningTableKey?: string
   _id: string
 }
 
@@ -146,7 +147,7 @@ export type OrderItem = {
   Extra: number
   FreeQtyPercentage: number
   ItemDiscount: number
-  KitchenUserId: number
+  KitchenUserId: number | null
   KOTGroupId: number
   KOTId: number
   Message: string
