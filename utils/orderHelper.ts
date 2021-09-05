@@ -150,7 +150,7 @@ const newPayload = (options: any) => {
             Sync: 0,
             val: 0
         },
-        InvoiceNo: '',
+        InvoiceNo: options.invoiceno,
         _id: '',
         DeliveryDateTime: '',
         DiningTableId: options.tableid,

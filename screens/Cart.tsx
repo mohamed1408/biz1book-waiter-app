@@ -14,6 +14,7 @@ import { color } from 'react-native-elements/dist/helpers';
 import images from '../assets/images'
 import oHelper from '../utils/orderHelper'
 import { SocketContext } from '../contexts/context'
+import { Socket } from 'socket.io-client';
 
 interface IProps {
     navigation: any
@@ -110,7 +111,8 @@ class Cart extends React.Component<IProps, IState> {
             typeid: order.OrderTypeId,
             tablekey: order.diningtablekey,
             username: order.UserName,
-            userid: order.UserId
+            userid: order.UserId,
+            invoiceno: order.InvoiceNo
         }
 
         var payload: OrderPayload = oHelper.newPayload(options)
@@ -119,25 +121,25 @@ class Cart extends React.Component<IProps, IState> {
         // console.log(order.OrderTypeId, options.typeid, this.state.payload.OrderTypeId)
     }
 
-    async _openClock() {
-        try {
-            const {
-                action,
-                // year,
-                // month,
-                // day
-            } = await DatePickerAndroid.open({
-                // Use `new Date()` for current date.
-                // May 25 2020. Month 0 is January.
-                date: new Date(2020, 4, 25)
-            });
-            if (action !== DatePickerAndroid.dismissedAction) {
-                // Selected year, month (0-11), day
-            }
-        } catch ({ code, message }) {
-            console.warn('Cannot open date picker', message);
-        }
-    }
+    // async _openClock() {
+    //     try {
+    //         const {
+    //             action,
+    //             // year,
+    //             // month,
+    //             // day
+    //         } = await DatePickerAndroid.open({
+    //             // Use `new Date()` for current date.
+    //             // May 25 2020. Month 0 is January.
+    //             date: new Date(2020, 4, 25)
+    //         });
+    //         if (action !== DatePickerAndroid.dismissedAction) {
+    //             // Selected year, month (0-11), day
+    //         }
+    //     } catch ({ code, message }) {
+    //         console.warn('Cannot open date picker', message);
+    //     }
+    // }
     _productList(product: any, index: number) {
 
         if (product.Product.toLowerCase().includes(this.state.searchText))
@@ -261,6 +263,14 @@ class Cart extends React.Component<IProps, IState> {
             // console.log(it.Product, it.Quantity, oHelper.orderItem(product, 1).Quantity)
         })
     }
+
+    _saveOrder(socket: Socket) {
+        if (this.state.payload.InvoiceNo.includes('/'))
+            socket.emit('order:update', this.state.payload)
+        else
+            socket.emit('order:create', this.state.payload)
+        this.props.navigation.goBack(null);
+    }
     render() {
         const { list, categories } = this.state
         const screenHeight = Dimensions.get('window').height;
@@ -271,7 +281,7 @@ class Cart extends React.Component<IProps, IState> {
                 <View>
                     <TouchableOpacity
                         // style={[{ flex: 1, paddingVertical: 10 }]}
-                        onPress={() => this._openClock()}
+                        onPress={() => this.setState({ isVisible: true })}
                     >
                         <MaterialCommunityIcons size={30} name="filter-menu-outline" color="#7e808c" style={[{ marginRight: 10, padding: 10, alignSelf: 'flex-end' }]} />
                     </TouchableOpacity>
@@ -303,8 +313,9 @@ class Cart extends React.Component<IProps, IState> {
                     disabled={this.state.payload?.Items.filter(x => x.Quantity > 0).length == 0}
                     title="Save Order"
                     onPressIn={() => {
-                        socket.emit('order:create', this.state.payload)
-                        this.props.navigation.goBack(null);
+                        this._saveOrder(socket)
+                        // socket.emit('order:create', this.state.payload)
+                        // this.props.navigation.goBack(null);
                     }}
                 />
                 <BottomSheet

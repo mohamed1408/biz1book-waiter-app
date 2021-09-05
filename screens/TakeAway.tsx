@@ -7,10 +7,11 @@ import api from '../utils/Api'
 
 // import EditScreenInfo from '../components/EditScreenInfo';
 // import { View as CustomView } from '../components/Themed';
-import { orders } from '../sampledata.json'
+// import { orders } from '../sampledata.json'
 import { Order, RootTabScreenProps } from '../types';
 import { useSocketUrl, useSocket } from '../contexts/context';
 import { io } from 'socket.io-client';
+import { useEffect, useState } from 'react';
 
 export default function TakeAwayScreen({ navigation }: RootTabScreenProps<'TakeAway'>) {
   const orderstatuses = [
@@ -22,9 +23,38 @@ export default function TakeAwayScreen({ navigation }: RootTabScreenProps<'TakeA
     { sid: 4, name: "Dispatched" },
     { sid: 5, name: "Delivered" }
   ]
-  // const { url, setUrl } = useSocketUrl();
+
+  const anyArr: any[] = []
+  const [orders, setOrders] = useState(anyArr);
+  // const [tables, setTables] = useState(anyArr);
+
   const { url, setUrl } = useSocketUrl();
   const { socket } = useSocket();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      // console.log('using effect');
+      const response = await api.getdata(new URL('finddata', url).href, { dbname: "preorders", findQuery: { OrderTypeId: 2 } })
+      const data = await response.data
+      setOrders(data)
+      _eventregistration()
+    };
+
+    fetchData();
+  }, []);
+
+  async function _getData() {
+    const response = await api.getdata(new URL('finddata', url).href, { dbname: "preorders", findQuery: { OrderStatusId: 2 } })
+    const data = await response.data
+    setOrders(data)
+  }
+
+  function _eventregistration() {
+    socket.on("preorder:update", (payload) => {
+      // console.log("table:lock", payload.tableKey)
+      _getData()
+    })
+  }
 
   function _orderOptions() {
     const options = {
@@ -84,8 +114,8 @@ export default function TakeAwayScreen({ navigation }: RootTabScreenProps<'TakeA
             onPress={() => _viewOrderDetails(item)}>
             <Text style={[styles.linkText]}>#{order.InvoiceNo}</Text>
           </TouchableOpacity>
-          <Text>{order.CustomerDetails.PhoneNo}</Text>
-          <Text>{order.CustomerDetails.Name}</Text>
+          <Text>{order.CustomerDetails.PhoneNo || 'N/A'}</Text>
+          <Text>{order.CustomerDetails.Name || 'N/A'}</Text>
         </View>
         <Text style={[{ flex: 1, alignSelf: 'center' }]}>{order.BillAmount}</Text>
         <Text style={[{ flex: 1, alignSelf: 'center' }]}>{order.PaidAmount}</Text>
