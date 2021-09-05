@@ -25,7 +25,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.biz1book.waiter"
     },
     "web": {
       "favicon": "./assets/images/favicon.png"

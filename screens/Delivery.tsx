@@ -26,7 +26,7 @@ export default function DeliveryScreen({ navigation }: RootTabScreenProps<'Deliv
   function _orderOptions() {
     const options = {
       tableid: null,
-      typeid: 2,
+      typeid: 3,
       tablekey: null,
       username: "mohamed",
       userid: null
@@ -56,7 +56,7 @@ export default function DeliveryScreen({ navigation }: RootTabScreenProps<'Deliv
         />
         <TouchableOpacity
           style={[styles.button, { flex: 1, flexDirection: 'row', width: 40 }]}
-          onPress={() => navigation.navigate('Cart')}>
+          onPress={() => _newOrder()}>
           <Ionicons size={20} name="add-sharp" color="white" style={[{ marginRight: 10 }]} />
           <Text style={[{ color: 'white' }]}>New Delivery</Text>
         </TouchableOpacity>

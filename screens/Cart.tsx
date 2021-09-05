@@ -1,14 +1,15 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StatusBar } from 'expo-status-bar';
 import * as React from 'react';
-import { Platform, SafeAreaView, ScrollView, SectionList, StyleSheet, Dimensions, TouchableOpacity, Image, Alert } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { Platform, SafeAreaView, ScrollView, SectionList, StyleSheet, Dimensions, TouchableOpacity, Image, Alert, DatePickerAndroid } from 'react-native';
 import { BottomSheet, Button, ListItem, SearchBar } from "react-native-elements";
+import { AntDesign, EvilIcons, FontAwesome, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 
 import { CartItem } from '../components/cartProduct';
 import { Text, View } from '../components/Themed';
 import { Order, OrderPayload } from '../types';
 import { category, product, orders } from '../sampledata.json'
-import { AntDesign, EvilIcons, FontAwesome, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { color } from 'react-native-elements/dist/helpers';
 import images from '../assets/images'
 import oHelper from '../utils/orderHelper'
@@ -116,6 +117,26 @@ class Cart extends React.Component<IProps, IState> {
         payload.Items = order.Items
         this.setState({ categories: category, products: product, cartData: categories, payload: payload, screenHeight: Dimensions.get('window').height, screenWidth: Dimensions.get('window').width })
         // console.log(order.OrderTypeId, options.typeid, this.state.payload.OrderTypeId)
+    }
+
+    async _openClock() {
+        try {
+            const {
+                action,
+                // year,
+                // month,
+                // day
+            } = await DatePickerAndroid.open({
+                // Use `new Date()` for current date.
+                // May 25 2020. Month 0 is January.
+                date: new Date(2020, 4, 25)
+            });
+            if (action !== DatePickerAndroid.dismissedAction) {
+                // Selected year, month (0-11), day
+            }
+        } catch ({ code, message }) {
+            console.warn('Cannot open date picker', message);
+        }
     }
     _productList(product: any, index: number) {
 
@@ -250,7 +271,7 @@ class Cart extends React.Component<IProps, IState> {
                 <View>
                     <TouchableOpacity
                         // style={[{ flex: 1, paddingVertical: 10 }]}
-                        onPress={() => this.setState({ isVisible: true })}
+                        onPress={() => this._openClock()}
                     >
                         <MaterialCommunityIcons size={30} name="filter-menu-outline" color="#7e808c" style={[{ marginRight: 10, padding: 10, alignSelf: 'flex-end' }]} />
                     </TouchableOpacity>
