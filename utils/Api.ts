@@ -44,4 +44,5 @@ export default {
     getdata: (url: string, options: any) => getdata(url, options),
     getdineindata: (url: string) => getdineindata(url),
     getproducts: (url: string) => getproducts(url),
+    checkserverstatus: (url: string) => checkserverstatus(url),
 };

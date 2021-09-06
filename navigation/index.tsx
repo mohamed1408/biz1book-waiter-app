@@ -23,6 +23,7 @@ import PickupScreen from '../screens/Pickup';
 import OrderDetailsScreen from '../screens/OrderDetails';
 import Cart from '../screens/Cart';
 import SettingScreen from '../screens/Settings';
+import Login from '../screens/Login';
 
 export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeName }) {
   return (
@@ -40,9 +41,14 @@ export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeNa
  */
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
+function getInitialRoute() {
+
+}
+
 function RootNavigator() {
   return (
-    <Stack.Navigator>
+    <Stack.Navigator initialRouteName={"Login"}>
+      <Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
       <Stack.Screen name="Root" component={BottomTabNavigator} options={{ headerShown: false }} />
       <Stack.Screen name="NotFound" component={NotFoundScreen} options={{ title: 'Oops!' }} />
       <Stack.Group screenOptions={{ presentation: 'modal' }}>
