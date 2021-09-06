@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StatusBar } from 'expo-status-bar';
 import * as React from 'react';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { Platform, SafeAreaView, ScrollView, SectionList, StyleSheet, Dimensions, TouchableOpacity, Image, Alert, DatePickerAndroid } from 'react-native';
+import { Platform, SafeAreaView, ScrollView, SectionList, StyleSheet, Dimensions, TouchableOpacity, Image, Modal, TextInput } from 'react-native';
 import { BottomSheet, Button, ListItem, SearchBar } from "react-native-elements";
 import { AntDesign, EvilIcons, FontAwesome, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 
@@ -34,6 +34,7 @@ interface IState {
     payload: OrderPayload
     searchText: string
     trigger: boolean
+    modalVisible: boolean
 }
 
 class Cart extends React.Component<IProps, IState> {
@@ -83,7 +84,8 @@ class Cart extends React.Component<IProps, IState> {
                 InvoiceNo: '',
                 _id: ''
             },
-            searchText: ''
+            searchText: '',
+            modalVisible: false
         }
     }
 
@@ -272,7 +274,7 @@ class Cart extends React.Component<IProps, IState> {
         this.props.navigation.goBack(null);
     }
     render() {
-        const { list, categories } = this.state
+        const { list, categories, modalVisible } = this.state
         const screenHeight = Dimensions.get('window').height;
         const screenWidth = Dimensions.get('window').width;
         const { socket, connect } = this.context
@@ -281,7 +283,7 @@ class Cart extends React.Component<IProps, IState> {
                 <View>
                     <TouchableOpacity
                         // style={[{ flex: 1, paddingVertical: 10 }]}
-                        onPress={() => this.setState({ isVisible: true })}
+                        onPress={() => this.setState({ modalVisible: true })}
                     >
                         <MaterialCommunityIcons size={30} name="filter-menu-outline" color="#7e808c" style={[{ marginRight: 10, padding: 10, alignSelf: 'flex-end' }]} />
                     </TouchableOpacity>
@@ -318,12 +320,32 @@ class Cart extends React.Component<IProps, IState> {
                         // this.props.navigation.goBack(null);
                     }}
                 />
+                {/* <Modal
+                    animationType="fade"
+                    transparent={true}
+                    visible={modalVisible}
+                    onRequestClose={() => {
+                        // Alert.alert("Modal has been closed.");
+                        // setModalVisible(!modalVisible);
+                    }}
+                    style={[{justifyContent: 'center'}]}
+                >
+                    <View style={styles.modalView}>
+                        <Text style={styles.modalText}>Hello World!</Text>
+                        <Button
+                            title="close"
+                            onPressIn={() => {
+                                this.setState({ modalVisible: false })
+                            }} />
+                    </View>
+                </Modal> */}
+                {/* CATEGORY BS */}
                 <BottomSheet
                     containerStyle={{ backgroundColor: 'rgba(0.5, 0.25, 0, 0.2)' }}
                     modalProps={{
                         visible: this.state.isVisible,
                         animationType: 'slide',
-                        hardwareAccelerated: true,
+                        // hardwareAccelerated: true,
                     }}>
                     <View style={[{ backgroundColor: 'white', flexDirection: 'row', paddingHorizontal: 10, paddingVertical: 20, justifyContent: 'center', borderTopLeftRadius: 10, borderTopRightRadius: 10 }]}>
                         <Text style={[{ fontSize: 20, flex: 1 }]}>Select Category</Text>
@@ -347,6 +369,51 @@ class Cart extends React.Component<IProps, IState> {
                         ))}
                     </ScrollView>
                 </BottomSheet>
+                {/* CATEGORY BS */}
+                <BottomSheet
+                    containerStyle={{ backgroundColor: 'rgba(0.5, 0.25, 0, 0.2)' }}
+                    modalProps={{
+                        visible: this.state.modalVisible,
+                        animationType: 'slide',
+                        // hardwareAccelerated: true,
+                    }}>
+                    <View style={[{ backgroundColor: 'white', flexDirection: 'row', paddingHorizontal: 10, paddingVertical: 20, justifyContent: 'center', borderTopLeftRadius: 10, borderTopRightRadius: 10 }]}>
+                        <Text style={[{ fontSize: 20, flex: 1 }]}>Order Details</Text>
+                        <TouchableOpacity style={[{ alignSelf: 'flex-end' }]} onPress={() => this.setState({ modalVisible: false })}>
+                            <EvilIcons size={30} name="close" color="black" style={[{ alignSelf: 'flex-end' }]} />
+                        </TouchableOpacity>
+                    </View>
+                    <View style={styles.separator} lightColor="lightgrey" darkColor="rgba(255,255,255,0.1)" />
+                    <ScrollView style={[{ maxHeight: screenHeight * 0.65, minHeight: screenHeight * 0.65, backgroundColor: 'white' }]}>
+                        <View style={[{flexDirection: 'row'}]}>
+                            <Text style={[{alignSelf: 'center', flex: 1}]}>Phone No</Text>
+                            <TextInput
+                                placeholder="Enter PhoneNo"
+                                keyboardType="default"
+                                style={[{margin: 10, padding: 5, flex: 3, borderWidth: 1}]}
+                                autoFocus={true}
+                            />
+                        </View>
+                        <View style={[{flexDirection: 'row'}]}>
+                            <Text style={[{alignSelf: 'center', flex: 1}]}>Name</Text>
+                            <TextInput
+                                placeholder="Enter Name"
+                                keyboardType="default"
+                                style={[{margin: 10, padding: 5, flex: 3, borderWidth: 1}]}
+                            />
+                        </View>
+                        <View style={[{flexDirection: 'row'}]}>
+                            <Text style={[{alignSelf: 'center', flex: 1}]}>Address</Text>
+                            <TextInput
+                                placeholder="Enter Address"
+                                keyboardType="default"
+                                style={[{margin: 10, padding: 5, flex: 3, borderWidth: 1}]}
+                                multiline={true}
+                            />
+                        </View>
+                    </ScrollView>
+                </BottomSheet>
+
             </SafeAreaView>
         );
     }
@@ -386,6 +453,40 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: 24
+    },
+    centeredView: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        marginTop: 22,
+        opacity: 0
+    },
+    modalView: {
+        // margin: 20,
+        // backgroundColor: "white",
+        bottom: 0,
+        borderRadius: 1,
+        padding: 35,
+        justifyContent: "center",
+        alignItems: "center",
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 2
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 5,
+        alignSelf: 'center'
+    },
+    button: {
+        borderRadius: 20,
+        padding: 10,
+        elevation: 2
+    },
+    modalText: {
+        marginBottom: 15,
+        textAlign: "center"
     }
 });
 
