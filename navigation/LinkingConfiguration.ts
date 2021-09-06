@@ -30,6 +30,16 @@ const linking: LinkingOptions<RootStackParamList> = {
               DeliveryScreen: 'delivery',
             },
           },
+          Pickup: {
+            screens: {
+              PickupScreen: 'pickup',
+            },
+          },
+          Setting: {
+            screens: {
+              SettingScreen: 'setting',
+            },
+          },
         },
       },
       Modal: 'modal',

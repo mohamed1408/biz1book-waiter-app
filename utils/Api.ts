@@ -16,12 +16,20 @@ const execute = async (url: string, method = 'GET', { params = {}, queries = {},
 
     options.url = api_url;
     options.baseURL = base;
-    console.log("Request", options)
+    // console.log("Request", options)
     return await axios(options);
 };
 
 const getdineindata = (url: string) => {
     return axios.post(url, ["diningarea", "diningtable"])
+}
+
+const getproducts = (url: string) => {
+    return axios.post(url, ["product", "category"])
+}
+
+const checkserverstatus = (url: string) => {
+    return axios.get(url)
 }
 
 const getdata = (url: string, options: any) => {
@@ -35,4 +43,5 @@ export default {
     delete: (url: string, options: { params?: {} | undefined; queries?: {} | undefined; payloads?: {} | undefined; headers?: {} | undefined; } | undefined) => execute(url, 'DELETE', options),
     getdata: (url: string, options: any) => getdata(url, options),
     getdineindata: (url: string) => getdineindata(url),
+    getproducts: (url: string) => getproducts(url),
 };

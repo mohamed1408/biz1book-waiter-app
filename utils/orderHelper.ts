@@ -125,7 +125,8 @@ const neworder = (options: any) => {
         alltransactions: [],
         appversion: '0.1.0',
         UserName: options.username,
-        app: 'waiterapp'
+        app: 'waiterapp',
+        _id: ''
     };
     return order
 }
@@ -151,7 +152,7 @@ const newPayload = (options: any) => {
             val: 0
         },
         InvoiceNo: options.invoiceno,
-        _id: '',
+        _id: options._id,
         DeliveryDateTime: '',
         DiningTableId: options.tableid,
         DiningTableKey: options.tablekey

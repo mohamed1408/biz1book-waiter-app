@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { StyleSheet, FlatList, Text, View, TouchableOpacity, TextInput } from 'react-native';
+import { StyleSheet, FlatList, Text, View, TouchableOpacity, TextInput, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import oHelper from '../utils/orderHelper'
@@ -26,32 +26,43 @@ export default function TakeAwayScreen({ navigation }: RootTabScreenProps<'TakeA
 
   const anyArr: any[] = []
   const [orders, setOrders] = useState(anyArr);
+  const [refreshing, setRefresState] = useState(false);
   // const [tables, setTables] = useState(anyArr);
 
   const { url, setUrl } = useSocketUrl();
-  const { socket } = useSocket();
+  const { socket, connect } = useSocket();
 
   useEffect(() => {
     const fetchData = async () => {
-      // console.log('using effect');
-      const response = await api.getdata(new URL('finddata', url).href, { dbname: "preorders", findQuery: { OrderTypeId: 2 } })
-      const data = await response.data
-      setOrders(data)
-      _eventregistration()
+      try {
+        const response = await api.getdata(new URL('finddata', url).href, { dbname: "preorders", findQuery: { OrderTypeId: 2 } })
+        const data = await response.data
+        setOrders(data)
+        _eventregistration()
+      } catch (error) {
+        // console.log(error)
+      }
     };
 
     fetchData();
   }, []);
 
   async function _getData() {
-    const response = await api.getdata(new URL('finddata', url).href, { dbname: "preorders", findQuery: { OrderStatusId: 2 } })
-    const data = await response.data
-    setOrders(data)
+    try {
+      const response = await api.getdata(new URL('finddata', url).href, { dbname: "preorders", findQuery: { OrderTypeId: 2 } })
+      const data = await response.data
+      setOrders(data)
+      setRefresState(false)
+    } catch (error) {
+      // console.log(error)
+      setRefresState(false)
+    }
   }
 
   function _eventregistration() {
+    // console.log("event registering ...")
     socket.on("preorder:update", (payload) => {
-      // console.log("table:lock", payload.tableKey)
+      // console.log("preorder:update")
       _getData()
     })
   }
@@ -74,9 +85,23 @@ export default function TakeAwayScreen({ navigation }: RootTabScreenProps<'TakeA
       JSON.stringify(oHelper.neworder(_orderOptions()))
     );
     // socket.emit('order:create', oHelper.newPayload(_orderOptions()))
-    navigation.navigate('Cart')
+    navigation.navigate('Cart',{url:url})
   }
 
+  async function _editOrder(order: Order) {
+    await AsyncStorage.removeItem('@order:edit')
+    await AsyncStorage.setItem(
+      '@order:edit',
+      JSON.stringify(order)
+    );
+    // socket.emit('order:create', oHelper.newPayload(_orderOptions()))
+    navigation.navigate('Cart',{url:url})
+  }
+
+  function _onreferesh() {
+    setRefresState(true)
+    _getData()
+  }
   return (
     <View style={styles.container}>
       <View style={[{ flexDirection: 'row' }]}>
@@ -100,6 +125,12 @@ export default function TakeAwayScreen({ navigation }: RootTabScreenProps<'TakeA
         ItemSeparatorComponent={_listItemSeparator}
         renderItem={({ item, index }) => _renderOrder(item, index)}
         keyExtractor={(item, index) => index.toString()}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={_onreferesh}
+          />
+        }
       >
       </FlatList>
     </View>
@@ -108,7 +139,9 @@ export default function TakeAwayScreen({ navigation }: RootTabScreenProps<'TakeA
   function _renderOrder(item: any, index: number) {
     const order: Order = item
     return (
-      <View style={[styles.item, styles.orderLI, { marginTop: index == 0 ? 30 : 0 }]}>
+      <TouchableOpacity style={[styles.item, styles.orderLI, { marginTop: index == 0 ? 30 : 0 }]}
+        onPress={() => _editOrder(order)}
+      >
         <View style={[{ flex: 2 }]}>
           <TouchableOpacity style={[{ marginBottom: 10 }]}
             onPress={() => _viewOrderDetails(item)}>
@@ -120,7 +153,7 @@ export default function TakeAwayScreen({ navigation }: RootTabScreenProps<'TakeA
         <Text style={[{ flex: 1, alignSelf: 'center' }]}>{order.BillAmount}</Text>
         <Text style={[{ flex: 1, alignSelf: 'center' }]}>{order.PaidAmount}</Text>
         <Text style={[{ flex: 1, alignSelf: 'center' }]}>{orderstatuses.filter(x => x.sid == order.OrderStatusId)[0].name}</Text>
-      </View>
+      </TouchableOpacity>
     )
   }
 

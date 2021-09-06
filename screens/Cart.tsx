@@ -9,15 +9,17 @@ import { AntDesign, EvilIcons, FontAwesome, Ionicons, MaterialCommunityIcons } f
 import { CartItem } from '../components/cartProduct';
 import { Text, View } from '../components/Themed';
 import { Order, OrderPayload } from '../types';
-import { category, product, orders } from '../sampledata.json'
+// import { category, product, orders } from '../sampledata.json'
 import { color } from 'react-native-elements/dist/helpers';
 import images from '../assets/images'
 import oHelper from '../utils/orderHelper'
 import { SocketContext } from '../contexts/context'
 import { Socket } from 'socket.io-client';
+import Api from '../utils/Api';
 
 interface IProps {
     navigation: any
+    route: any
 }
 
 interface IState {
@@ -90,11 +92,16 @@ class Cart extends React.Component<IProps, IState> {
     }
 
     componentDidMount = async () => {
+        const {url} = this.props.route.params
+        // return
+        const proddata = await (await Api.getproducts(new URL('getdbdata', url).href)).data
+        
         const orderData: string = await AsyncStorage.getItem('@order:edit') || '{}'
         const order: Order = JSON.parse(orderData)
         // console.log(order.diningtablekey, order.UserName, order.Items.length)
-        var categories: any = category.filter(x => x.ParentId != 0)
-        product.forEach(pd => {
+        var categories: any = proddata.category.filter((x: any) => x.ParentId != 0)
+        var product = proddata.product
+        product.forEach((pd: any) => {
             if (order.Items.some(x => x.ProductKey == oHelper.productkeygenerator(pd))) {
                 pd.Quantity = order.Items.filter(x => x.ProductKey == oHelper.productkeygenerator(pd))[0].Quantity
             } else {
@@ -102,11 +109,11 @@ class Cart extends React.Component<IProps, IState> {
             }
         })
         order.Items.forEach(it => {
-            product.filter(x => x.Id == it.ProductId)[0].Quantity = it.Quantity
+            product.filter((x: any) => x.Id == it.ProductId)[0].Quantity = it.Quantity
         })
         categories.forEach((cat: any) => {
-            cat.Parent = category.filter(x => x.Id == cat.ParentId)[0].Category
-            cat.data = product.filter(x => x.CategoryId == cat.Id)
+            cat.Parent = proddata.category.filter((x: any) => x.Id == cat.ParentId)[0].Category
+            cat.data = product.filter((x: any) => x.CategoryId == cat.Id)
         })
         const options = {
             tableid: order.DiningTableId,
@@ -114,12 +121,13 @@ class Cart extends React.Component<IProps, IState> {
             tablekey: order.diningtablekey,
             username: order.UserName,
             userid: order.UserId,
-            invoiceno: order.InvoiceNo
+            invoiceno: order.InvoiceNo,
+            _id: order._id
         }
 
         var payload: OrderPayload = oHelper.newPayload(options)
         payload.Items = order.Items
-        this.setState({ categories: category, products: product, cartData: categories, payload: payload, screenHeight: Dimensions.get('window').height, screenWidth: Dimensions.get('window').width })
+        this.setState({ products: product, cartData: categories, payload: payload, screenHeight: Dimensions.get('window').height, screenWidth: Dimensions.get('window').width })
         // console.log(order.OrderTypeId, options.typeid, this.state.payload.OrderTypeId)
     }
 
@@ -200,7 +208,7 @@ class Cart extends React.Component<IProps, IState> {
             else
                 return (<View></View>)
         } catch (error) {
-            // // console.log(error)
+            // console.log(error)
             return (<View></View>)
         }
     }
@@ -267,7 +275,7 @@ class Cart extends React.Component<IProps, IState> {
     }
 
     _saveOrder(socket: Socket) {
-        if (this.state.payload.InvoiceNo.includes('/'))
+        if ([2, 3, 4].includes(this.state.payload.OrderTypeId) && this.state.payload.InvoiceNo.includes('/'))
             socket.emit('order:update', this.state.payload)
         else
             socket.emit('order:create', this.state.payload)
@@ -385,29 +393,29 @@ class Cart extends React.Component<IProps, IState> {
                     </View>
                     <View style={styles.separator} lightColor="lightgrey" darkColor="rgba(255,255,255,0.1)" />
                     <ScrollView style={[{ maxHeight: screenHeight * 0.65, minHeight: screenHeight * 0.65, backgroundColor: 'white' }]}>
-                        <View style={[{flexDirection: 'row'}]}>
-                            <Text style={[{alignSelf: 'center', flex: 1}]}>Phone No</Text>
+                        <View style={[{ flexDirection: 'row' }]}>
+                            <Text style={[{ alignSelf: 'center', flex: 1 }]}>Phone No</Text>
                             <TextInput
                                 placeholder="Enter PhoneNo"
                                 keyboardType="default"
-                                style={[{margin: 10, padding: 5, flex: 3, borderWidth: 1}]}
+                                style={[{ margin: 10, padding: 5, flex: 3, borderWidth: 1 }]}
                                 autoFocus={true}
                             />
                         </View>
-                        <View style={[{flexDirection: 'row'}]}>
-                            <Text style={[{alignSelf: 'center', flex: 1}]}>Name</Text>
+                        <View style={[{ flexDirection: 'row' }]}>
+                            <Text style={[{ alignSelf: 'center', flex: 1 }]}>Name</Text>
                             <TextInput
                                 placeholder="Enter Name"
                                 keyboardType="default"
-                                style={[{margin: 10, padding: 5, flex: 3, borderWidth: 1}]}
+                                style={[{ margin: 10, padding: 5, flex: 3, borderWidth: 1 }]}
                             />
                         </View>
-                        <View style={[{flexDirection: 'row'}]}>
-                            <Text style={[{alignSelf: 'center', flex: 1}]}>Address</Text>
+                        <View style={[{ flexDirection: 'row' }]}>
+                            <Text style={[{ alignSelf: 'center', flex: 1 }]}>Address</Text>
                             <TextInput
                                 placeholder="Enter Address"
                                 keyboardType="default"
-                                style={[{margin: 10, padding: 5, flex: 3, borderWidth: 1}]}
+                                style={[{ margin: 10, padding: 5, flex: 3, borderWidth: 1 }]}
                                 multiline={true}
                             />
                         </View>

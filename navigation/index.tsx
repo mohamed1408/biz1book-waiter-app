@@ -19,8 +19,10 @@ import { RootStackParamList, RootTabParamList, RootTabScreenProps } from '../typ
 import LinkingConfiguration from './LinkingConfiguration';
 import TakeAwayScreen from '../screens/TakeAway';
 import DeliveryScreen from '../screens/Delivery';
+import PickupScreen from '../screens/Pickup';
 import OrderDetailsScreen from '../screens/OrderDetails';
 import Cart from '../screens/Cart';
+import SettingScreen from '../screens/Settings';
 
 export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeName }) {
   return (
@@ -63,7 +65,7 @@ function BottomTabNavigator() {
 
   return (
     <BottomTab.Navigator
-      initialRouteName="TabOne"
+      initialRouteName="DineIn"
       screenOptions={{
         tabBarActiveTintColor: Colors[colorScheme].tint,
       }}>
@@ -88,15 +90,7 @@ function BottomTabNavigator() {
             </Pressable>
           ),
         })}
-      />
-      <BottomTab.Screen
-        name="TabTwo"
-        component={TabTwoScreen}
-        options={{
-          title: 'Tab Two',
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
-        }}
-      /> */}
+      />*/}
       <BottomTab.Screen
         name="DineIn"
         component={DineInScreen}
@@ -114,11 +108,27 @@ function BottomTabNavigator() {
         }}
       />
       <BottomTab.Screen
+        name="Pickup"
+        component={PickupScreen}
+        options={{
+          title: 'Pickup',
+          tabBarIcon: ({ color }) => <TabBarIcon name="fastfood" color={color} />,
+        }}
+      />
+      <BottomTab.Screen
         name="Delivery"
         component={DeliveryScreen}
         options={{
           title: 'Delivery',
           tabBarIcon: ({ color }) => <TabBarIcon name="delivery-dining" color={color} />,
+        }}
+      />
+      <BottomTab.Screen
+        name="Setting"
+        component={SettingScreen}
+        options={{
+          title: 'Setting',
+          tabBarIcon: ({ color }) => <TabBarIcon name="more-horiz" color={color} />,
         }}
       />
     </BottomTab.Navigator>

@@ -7,8 +7,10 @@ import EditScreenInfo from '../components/EditScreenInfo';
 import { Text, View } from '../components/Themed';
 import { Order, OrderItem } from '../types';
 import { category, product, orders } from '../sampledata.json'
+import { Button } from 'react-native-elements';
 
 interface IProps {
+    navigation: any
 }
 
 interface IState {
@@ -95,12 +97,20 @@ class OrderDetails extends React.Component<IProps, IState> {
                             ListHeaderComponentStyle={[{ backgroundColor: 'red' }]}
                             ItemSeparatorComponent={this._listItemSeparator}
                             renderItem={({ item, index }) => this._renderItem(item, index)}
-                        >
-                        </FlatList>
+                            keyExtractor={(item, index) => index.toString()}
+                        />
                     </View>
                 </View>
+                {/* <View style={[{flexDirection: 'row'}]}>
+                    <Button
+                        style={[{ width: 500 }]}
+                        title="close"
+                        onPress={() => {
+                            this.props.navigation.goBack(null);
+                        }} />
+                </View> */}
                 {/* Use a light status bar on iOS to account for the black space above the modal */}
-                <StatusBar style={Platform.OS === 'ios' ? 'light' : 'auto'} />
+                {/* <StatusBar style={Platform.OS === 'ios' ? 'light' : 'auto'} /> */}
             </View>
         );
     }

@@ -17,7 +17,7 @@ export type RootStackParamList = {
   Root: NavigatorScreenParams<RootTabParamList> | undefined;
   Modal: undefined;
   OrderDetails: undefined;
-  Cart: undefined;
+  Cart: any;
   NotFound: undefined;
 };
 
@@ -32,6 +32,8 @@ export type RootTabParamList = {
   DineIn: undefined;
   TakeAway: undefined;
   Delivery: undefined;
+  Pickup: undefined;
+  Setting: undefined;
 };
 
 export type RootTabScreenProps<Screen extends keyof RootTabParamList> = CompositeScreenProps<
@@ -131,6 +133,7 @@ export type Order = {
   appversion: string
   app: string
   UserName: string
+  _id: string
 }
 
 export type KOT = {

@@ -7,14 +7,23 @@ import useCachedResources from './hooks/useCachedResources';
 import useColorScheme from './hooks/useColorScheme';
 import Navigation from './navigation';
 import { ThemeContext, Theme, SocketContext, SocketUrlContext } from './contexts/context'
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function App() {
+
   const [theme, setTheme] = React.useState(Theme.Light);
-  const [url, setUrl] = React.useState("http://192.168.1.6:8000");
+  const [url, setUrl] = React.useState("http://192.168.1.3:8000");
   const [socket, connect] = React.useState(io(url));
   const isLoadingComplete = useCachedResources();
   const colorScheme = useColorScheme();
 
+
+  // async function _getServerUrl() {
+  //   const locUrl = await AsyncStorage.getItem("@serverurl") || ""
+  //   setUrl(locUrl)
+  //   connect(io(url))
+  // }
+  // _getServerUrl()
   // const socket: Socket = io("http://192.168.1.3:8000")
   // connect()
   socket.on("connect", () => {
@@ -31,7 +40,7 @@ export default function App() {
     return null;
   } else {
     return (
-      <SocketUrlContext.Provider value={{url, setUrl}}>
+      <SocketUrlContext.Provider value={{ url, setUrl }}>
         <SocketContext.Provider value={{ socket, connect }}>
           <SafeAreaProvider>
             <Navigation colorScheme={theme} />
