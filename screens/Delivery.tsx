@@ -12,6 +12,7 @@ import { Order, RootTabScreenProps } from '../types';
 import { useSocketUrl, useSocket } from '../contexts/context';
 import { io } from 'socket.io-client';
 import { useEffect, useState } from 'react';
+import moment from 'moment';
 
 export default function DeliveryScreen({ navigation }: RootTabScreenProps<'Delivery'>) {
   const orderstatuses = [

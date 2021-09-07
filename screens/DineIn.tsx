@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Dimensions, RefreshControl, StyleSheet, TouchableOpacity } from 'react-native';
+import { Dimensions, Pressable, RefreshControl, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 
 import EditScreenInfo from '../components/EditScreenInfo';
 import { Text, View } from '../components/Themed';
@@ -12,8 +12,29 @@ import { Order, OrderPayload, RootTabParamList, RootTabScreenProps } from '../ty
 import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ParamListBase } from '@react-navigation/native';
+import { EvilIcons, FontAwesome, MaterialIcons } from '@expo/vector-icons';
+import { BottomSheet, ListItem } from 'react-native-elements';
 
 export default function DineInScreen({ navigation }: RootTabScreenProps<'DineIn'>) {
+
+  React.useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <Pressable
+          onPress={() => setShowFloors(true)}
+          style={({ pressed }) => ({
+            opacity: pressed ? 0.5 : 1,
+          })}>
+          <MaterialIcons
+            name="menu"
+            size={25}
+            color={'#2f95dc'}
+            style={{ marginRight: 15 }}
+          />
+        </Pressable>
+      )
+    })
+  })
 
   const { url, setUrl } = useSocketUrl();
   const { socket } = useSocket();
@@ -28,6 +49,9 @@ export default function DineInScreen({ navigation }: RootTabScreenProps<'DineIn'
   const [areas, setAreas] = useState(anyArr);
   const [tables, setTables] = useState(anyArr);
   const [refreshing, setRefresState] = useState(false);
+  const [showFloors, setShowFloors] = useState(false);
+  const [currentFloor, setCurrentFloor] = useState("undefined");
+  const [currentFloorId, setCurrentFloorId] = useState(0);
 
   const cache: any = {}
 
@@ -40,6 +64,8 @@ export default function DineInScreen({ navigation }: RootTabScreenProps<'DineIn'
         cache["diningtable"] = data.diningtable
         setAreas(cache.diningarea)
         setTables(_sortTable(cache.diningtable))
+        setCurrentFloor(cache["diningarea"][0].DiningArea)
+        setCurrentFloorId(cache["diningarea"][0].Id)
         _eventregistration()
       } catch (error) {
         // console.log(error)
@@ -48,7 +74,7 @@ export default function DineInScreen({ navigation }: RootTabScreenProps<'DineIn'
     let mounted = true
     if (mounted)
       fetchData();
-      
+
     return function cleanup() {
       mounted = false
     }
@@ -69,6 +95,12 @@ export default function DineInScreen({ navigation }: RootTabScreenProps<'DineIn'
       }
       return 0;
     })
+  }
+
+  function changeFloor(floor: any) {
+    setCurrentFloor(floor.DiningArea)
+    setCurrentFloorId(floor.Id)
+    setShowFloors(false)
   }
 
   function _getData() {
@@ -177,8 +209,10 @@ export default function DineInScreen({ navigation }: RootTabScreenProps<'DineIn'
   return (
     <View style={styles.container}>
       <View style={[styles.tblList]}>
+        <Text style={[{ fontSize: 20, fontWeight: 'bold' }]}>{currentFloor}</Text>
+        <View style={styles.separatorfull} lightColor="grey" darkColor="rgba(255,255,255,0.1)" />
         <FlatList
-          data={tables}
+          data={tables.filter(x => x.DiningAreaId == currentFloorId)}
           renderItem={_renderTable}
           keyExtractor={(_item, index) => index.toString()}
           numColumns={numColumns}
@@ -190,6 +224,30 @@ export default function DineInScreen({ navigation }: RootTabScreenProps<'DineIn'
           }
         />
       </View>
+      <BottomSheet
+        containerStyle={{ backgroundColor: 'rgba(0.5, 0.25, 0, 0.2)' }}
+        modalProps={{
+          visible: showFloors,
+          animationType: 'slide',
+          // hardwareAccelerated: true,
+        }}>
+        <View style={[{ backgroundColor: 'white', flexDirection: 'row', paddingHorizontal: 10, paddingVertical: 20, justifyContent: 'center', borderTopLeftRadius: 10, borderTopRightRadius: 10 }]}>
+          <Text style={[{ fontSize: 20, flex: 1 }]}>Select Floor</Text>
+          <TouchableOpacity style={[{ alignSelf: 'flex-end' }]} onPress={() => setShowFloors(false)}>
+            <EvilIcons size={30} name="close" color="black" style={[{ alignSelf: 'flex-end' }]} />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.separatorfull} lightColor="lightgrey" darkColor="rgba(255,255,255,0.1)" />
+        <ScrollView style={[{ maxHeight: screenHeight * 0.65, minHeight: screenHeight * 0.65, backgroundColor: 'white' }]}>
+          {areas.map((l: any, i: number) => (
+            <ListItem key={i} onPress={() => changeFloor(l)}>
+              <ListItem.Content>
+                <ListItem.Title>{l.DiningArea}</ListItem.Title>
+              </ListItem.Content>
+            </ListItem>
+          ))}
+        </ScrollView>
+      </BottomSheet>
     </View>
   );
 }
@@ -208,6 +266,11 @@ const styles = StyleSheet.create({
     marginVertical: 30,
     height: 1,
     width: '80%',
+  },
+  separatorfull: {
+    // marginVertical: 10,
+    height: 1,
+    width: '100%',
   },
   tblList: {
     padding: 10

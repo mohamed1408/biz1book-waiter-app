@@ -34,27 +34,28 @@ const cartItem: FC<Props> = ({ product, searchText, addItem, screenWidth, screen
                 </View>
                 <View style={[{ flex: 1, justifyContent: 'center' }]}>
                     {(!product.Quantity)
-                        ? <View
-                            style={[{ borderWidth: 1, borderColor: '#dadde2', backgroundColor: 'white', elevation: 5, alignSelf: 'center', width: screenWidth * 0.25, paddingHorizontal: 5, paddingVertical: 10, borderRadius: 5 }]}>
-                            <TouchableOpacity
-                                style={[{ alignSelf: 'center' }]}
-                                onPress={() => addItem(product, 'null')}
-                            >
-                                <Text style={[{ fontSize: 15, fontWeight: 'bold', color: 'green' }]}>ADD</Text>
-                            </TouchableOpacity>
-                        </View>
+                        ?
+                        // <View
+                        //     style={[{ borderWidth: 1, borderColor: '#dadde2', backgroundColor: 'white', elevation: 5, alignSelf: 'center', width: screenWidth * 0.25, paddingHorizontal: 5, paddingVertical: 10, borderRadius: 5 }]}>
+                        <TouchableOpacity
+                            style={[{ borderWidth: 1, borderColor: '#dadde2', backgroundColor: 'white', elevation: 5, alignSelf: 'center', width: screenWidth * 0.25, paddingHorizontal: 5, paddingVertical: 10, borderRadius: 5 }]}
+                            onPress={() => addItem(product, 'null')}
+                        >
+                            <Text style={[{ fontSize: 15, fontWeight: 'bold', color: 'green', alignSelf: 'center' }]}>ADD</Text>
+                        </TouchableOpacity>
+                        // </View>
                         : <View
                             style={[{ borderWidth: 1, borderColor: '#dadde2', backgroundColor: 'white', elevation: 5, alignSelf: 'center', width: screenWidth * 0.25, borderRadius: 5, flexDirection: 'row' }]}>
                             <TouchableOpacity
                                 style={[{ flex: 1, paddingVertical: 10, paddingLeft: 3 }]}
                                 onPress={() => addItem(product, 'minus')}>
-                                <AntDesign size={20} name="minus" color="#d5d5d6" style={[{ marginRight: 10 }]} />
+                                <AntDesign size={20} name="minus" color="#d5d5d6" style={[{ marginRight: 10, alignSelf: 'center' }]} />
                             </TouchableOpacity>
-                            <Text style={[{ alignSelf: 'center', flex: 1, fontSize: 15 }]}>{product.Quantity}</Text>
+                            <Text style={[{ alignSelf: 'center', position: 'absolute', fontSize: 15, left: '40%' }]}>{product.Quantity}</Text>
                             <TouchableOpacity
                                 style={[{ flex: 1, paddingVertical: 10 }]}
                                 onPress={() => addItem(product, 'plus')}>
-                                <AntDesign size={20} name="plus" color="green" style={[{ marginRight: 10 }]} />
+                                <AntDesign size={20} name="plus" color="green" style={[{ marginRight: 10, alignSelf: 'center' }]} />
                             </TouchableOpacity>
                         </View>
                     }
@@ -72,7 +73,7 @@ function areEqual(prevProps: Props, nextProps: Props) {
     the same result as passing prevProps to render,
     otherwise return false
     */
-   // console.log(prevProps.searchText, nextProps.searchText)
+    // console.log(prevProps.searchText, nextProps.searchText)
     if (nextProps !== prevProps) {
         return true
     } else {
@@ -87,4 +88,4 @@ const styles = StyleSheet.create({
     }
 });
 
-export const CartItem =  React.memo(cartItem);
+export const CartItem = React.memo(cartItem);

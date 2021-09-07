@@ -3,13 +3,13 @@ import { StatusBar } from 'expo-status-bar';
 import * as React from 'react';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Platform, SafeAreaView, ScrollView, SectionList, StyleSheet, Dimensions, TouchableOpacity, Image, Modal, TextInput } from 'react-native';
-import { BottomSheet, Button, ListItem, SearchBar } from "react-native-elements";
+import { Badge, BottomSheet, Button, ListItem, SearchBar } from "react-native-elements";
 import { AntDesign, EvilIcons, FontAwesome, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import moment from 'moment'
 
 import { CartItem } from '../components/cartProduct';
 import { Text, View } from '../components/Themed';
-import { Order, OrderPayload } from '../types';
+import { Order, OrderItem, OrderPayload } from '../types';
 // import { category, product, orders } from '../sampledata.json'
 import { color } from 'react-native-elements/dist/helpers';
 import images from '../assets/images'
@@ -278,7 +278,21 @@ class Cart extends React.Component<IProps, IState> {
             // console.log(it.Product, it.Quantity, oHelper.orderItem(product, 1).Quantity)
         })
     }
+    _addFromCart(product: OrderItem, qty: number) {
 
+        var { payload } = this.state
+        // if (type == 'minus') {
+        //     this.state.cartData.filter((x: any) => x.Id == product.CategoryId)[0].data.filter((x: any) => x.Id == product.ProductId)[0].Quantity--
+        //     payload.Items.filter(x => x.ProductKey == product.ProductKey)[0].Quantity--
+        // } else if (type == 'plus') {
+        //     this.state.cartData.filter((x: any) => x.Id == product.CategoryId)[0].data.filter((x: any) => x.Id == product.ProductId)[0].Quantity++
+        //     payload.Items.filter(x => x.ProductKey == product.ProductKey)[0].Quantity++
+        // } else if (type == 'remove') {
+        this.state.cartData.filter((x: any) => x.Id == product.CategoryId)[0].data.filter((x: any) => x.Id == product.ProductId)[0].Quantity = qty
+        payload.Items.filter(x => x.ProductKey == product.ProductKey)[0].Quantity = qty
+        // }
+        this.setState({ cartData: this.state.cartData, payload: payload, trigger: !this.state.trigger })
+    }
     _advancedOrderVal() {
         var val = true
         const { OrderTypeId, CustomerDetails, DeliveryDateTime } = this.state.payload
@@ -291,7 +305,7 @@ class Cart extends React.Component<IProps, IState> {
     }
     _saveOrder(socket: Socket) {
         if (this._advancedOrderVal()) {
-            console.log(this.state.payload.OrderTypeId,this.state.payload.InvoiceNo)
+            console.log(this.state.payload.OrderTypeId, this.state.payload.InvoiceNo)
             if ([2, 3, 4].includes(this.state.payload.OrderTypeId) && this.state.payload.InvoiceNo.includes('/'))
                 socket.emit('order:update', this.state.payload)
             else
@@ -330,9 +344,15 @@ class Cart extends React.Component<IProps, IState> {
                 <View>
                     <TouchableOpacity
                         // style={[{ flex: 1, paddingVertical: 10 }]}
-                        onPress={() => this.setState({ modalVisible: true })}
+                        disabled={this.state.payload.Items.filter(x => x.Quantity > 0).length == 0}
+                        onPress={() => this.setState({ isVisible: true })}
                     >
-                        <MaterialCommunityIcons size={30} name="filter-menu-outline" color="#7e808c" style={[{ marginRight: 10, padding: 10, alignSelf: 'flex-end' }]} />
+                        <AntDesign size={30} name="shoppingcart" color="#7e808c" style={[{ marginRight: 10, padding: 10, alignSelf: 'flex-end' }]} />
+                        {this.state.payload.Items.filter(x => x.Quantity > 0).length > 0 && <Badge
+                            status="error"
+                            containerStyle={{ position: 'absolute', top: 5, right: 15 }}
+                            value={this.state.payload.Items.filter(x => x.Quantity > 0).length}
+                        />}
                     </TouchableOpacity>
                     <SearchBar
                         placeholder="Type Here..."
@@ -342,7 +362,6 @@ class Cart extends React.Component<IProps, IState> {
                 </View>
                 <SectionList
                     ref={(sectionList) => { this.sectionList = sectionList }}
-                    initialNumToRender={1000}
                     style={[{ maxHeight: '80%' }]}
                     sections={this.state.cartData}
                     stickySectionHeadersEnabled={true}
@@ -354,19 +373,11 @@ class Cart extends React.Component<IProps, IState> {
                     renderSectionHeader={({ section: { Category, Parent, Id } }) => this._sectionHeader(Category, Parent, Id)}
                 />
                 <Button
-                    style={[{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                    }]}
+                    style={[{position: 'absolute',bottom: 0}]}
+                    containerStyle={[{ height: 50 }]}
                     disabled={this.state.payload?.Items.filter(x => x.Quantity > 0).length == 0}
                     title="Save Order"
-                    onPressIn={() => {
-                        this._saveOrder(socket)
-                        // socket.emit('order:create', this.state.payload)
-                        // this.props.navigation.goBack(null);
-                    }}
-                />
+                    onPress={() => {this._saveOrder(socket)}}/>
                 {/* <Modal
                     animationType="fade"
                     transparent={true}
@@ -395,26 +406,49 @@ class Cart extends React.Component<IProps, IState> {
                         // hardwareAccelerated: true,
                     }}>
                     <View style={[{ backgroundColor: 'white', flexDirection: 'row', paddingHorizontal: 10, paddingVertical: 20, justifyContent: 'center', borderTopLeftRadius: 10, borderTopRightRadius: 10 }]}>
-                        <Text style={[{ fontSize: 20, flex: 1 }]}>Select Category</Text>
+                        <Text style={[{ fontSize: 20, flex: 1 }]}>Cart Items</Text>
                         <TouchableOpacity style={[{ alignSelf: 'flex-end' }]} onPress={() => this.setState({ isVisible: false })}>
                             <EvilIcons size={30} name="close" color="black" style={[{ alignSelf: 'flex-end' }]} />
                         </TouchableOpacity>
                     </View>
                     <View style={styles.separator} lightColor="lightgrey" darkColor="rgba(255,255,255,0.1)" />
-                    <SearchBar
-                        placeholder="Type Here..."
-                        platform="android"
-                        onChangeText={this._updateSearch}
-                    />
                     <ScrollView style={[{ maxHeight: screenHeight * 0.65, minHeight: screenHeight * 0.65, backgroundColor: 'white' }]}>
-                        {this.state.categories.filter((x: any) => this._catFilter(x.Category) && x.ParentId > 0).map((l: { containerStyle: any; onPress: any; titleStyle: any; title: any; Category: any; }, i: number) => (
-                            <ListItem key={i} containerStyle={l.containerStyle} onPress={() => this._scrollTo(i, 0)}>
+                        {this.state.payload.Items.filter(x => x.Quantity > 0).map((l: any, i: number) => (
+                            <ListItem key={i}>
                                 <ListItem.Content>
-                                    <ListItem.Title style={l.titleStyle}>{l.Category}</ListItem.Title>
+                                    <ListItem.Title>{l.showname}</ListItem.Title>
+                                    <ListItem.Subtitle>₹ {l.Price} x {l.Quantity} {l.ComplementryQty > 0 ? '+' + l.ComplementryQty : null}</ListItem.Subtitle>
+                                </ListItem.Content>
+                                <ListItem.Content right>
+                                    <TouchableOpacity
+                                        style={[{ flex: 1, paddingVertical: 10, paddingLeft: 3 }]}
+                                        onPress={() => this._addFromCart(l, 0)}>
+                                        <AntDesign size={20} name="delete" color="red" style={[{ marginRight: 10 }]} />
+                                    </TouchableOpacity>
+                                    <View
+                                        style={[{ borderWidth: 1, borderColor: '#dadde2', backgroundColor: 'white', elevation: 5, alignSelf: 'center', width: this.state.screenWidth * 0.25, borderRadius: 5, flexDirection: 'row' }]}>
+                                        <TouchableOpacity
+                                            style={[{ flex: 1, paddingVertical: 10, paddingLeft: 3 }]}
+                                            onPress={() => this._addFromCart(l, l.Quantity - 1)}>
+                                            <AntDesign size={20} name="minus" color="#d5d5d6" style={[{ marginRight: 10 }]} />
+                                        </TouchableOpacity>
+                                        <Text style={[{ alignSelf: 'center', flex: 1, fontSize: 15 }]}>{l.Quantity}</Text>
+                                        <TouchableOpacity
+                                            style={[{ flex: 1, paddingVertical: 10 }]}
+                                            onPress={() => this._addFromCart(l, l.Quantity + 1)}>
+                                            <AntDesign size={20} name="plus" color="green" style={[{ marginRight: 10 }]} />
+                                        </TouchableOpacity>
+                                    </View>
                                 </ListItem.Content>
                             </ListItem>
                         ))}
                     </ScrollView>
+                    <Button
+                        style={[{position: 'absolute',bottom: 0}]}
+                        containerStyle={[{ height: 50 }]}
+                        disabled={this.state.payload?.Items.filter(x => x.Quantity > 0).length == 0}
+                        title="Save Order"
+                        onPress={() => {this._saveOrder(socket)}}/>
                 </BottomSheet>
                 {/* CATEGORY BS */}
                 <BottomSheet
@@ -438,7 +472,7 @@ class Cart extends React.Component<IProps, IState> {
                                 placeholder="Enter PhoneNo"
                                 keyboardType="phone-pad"
                                 value={this.state.payload.CustomerDetails?.PhoneNo}
-                                onChangeText={((text) => this._setCustomerDetails("PhoneNo",text))}
+                                onChangeText={((text) => this._setCustomerDetails("PhoneNo", text))}
                                 style={[{ margin: 10, padding: 5, flex: 3, borderWidth: 1 }]}
                                 autoFocus={true}
                             />
@@ -449,7 +483,7 @@ class Cart extends React.Component<IProps, IState> {
                                 placeholder="Enter Name"
                                 keyboardType="default"
                                 value={this.state.payload.CustomerDetails?.Name}
-                                onChangeText={((text) => this._setCustomerDetails("Name",text))}
+                                onChangeText={((text) => this._setCustomerDetails("Name", text))}
                                 style={[{ margin: 10, padding: 5, flex: 3, borderWidth: 1 }]}
                             />
                         </View>
@@ -459,7 +493,7 @@ class Cart extends React.Component<IProps, IState> {
                                 placeholder="Enter Address"
                                 keyboardType="default"
                                 value={this.state.payload.CustomerDetails?.Address}
-                                onChangeText={((text) => this._setCustomerDetails("Address",text))}
+                                onChangeText={((text) => this._setCustomerDetails("Address", text))}
                                 style={[{ margin: 10, padding: 5, flex: 3, borderWidth: 1 }]}
                                 multiline={true}
                             />

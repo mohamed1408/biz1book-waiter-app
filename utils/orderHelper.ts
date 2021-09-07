@@ -1,8 +1,7 @@
 import { Order, OrderItem, OrderPayload } from '../types'
 
 const productkeygenerator = (product: any) => {
-    var key: string = ''
-    key = product.ProductId ? product.ProductId.toString() : product.Id.toString()
+    var key: string = product.ProductId ? product.ProductId.toString() : product.Id.toString()
     if (product.OptionGroup) {
         product.OptionGroup.forEach((opg: any) => {
             if (opg.selected) {
