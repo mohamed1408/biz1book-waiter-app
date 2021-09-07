@@ -12,7 +12,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export default function App() {
 
   const [theme, setTheme] = React.useState(Theme.Light);
-  const [url, setUrl] = React.useState("http://192.168.1.3:8000");
+  const [url, setUrl] = React.useState("");
   const [socket, connect] = React.useState(io(url));
   const isLoadingComplete = useCachedResources();
   const colorScheme = useColorScheme();

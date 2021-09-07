@@ -33,7 +33,7 @@ export default function LoginScreen({ navigation }: RootStackScreenProps<'Login'
             await AsyncStorage.removeItem("@serverurl")
         })
     }
-
+    checkStorageUrl()
     function onInput(text: string) {
         setServerUrl(text)
     }
@@ -47,12 +47,13 @@ export default function LoginScreen({ navigation }: RootStackScreenProps<'Login'
             console.log(response.data.status)
             setLoading(false)
             if (response.data.status == 200) {
-                setUrl("http://" + serverUrl)
-                connect(io(url))
+                await setUrl("http://" + serverUrl)
+                console.log(url, serverUrl)
+                await connect(io("http://" + serverUrl))
                 setMessage("")
                 await AsyncStorage.setItem("@serverurl", "http://" + serverUrl)
                 ToastAndroid.show("Connection established", ToastAndroid.SHORT)
-                navigation.replace('Root')
+                navigation.navigate('Root')
             }
         }, error => {
             setLoading(false)

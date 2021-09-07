@@ -24,6 +24,10 @@ import OrderDetailsScreen from '../screens/OrderDetails';
 import Cart from '../screens/Cart';
 import SettingScreen from '../screens/Settings';
 import Login from '../screens/Login';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import api from '../utils/Api'
+import { io } from 'socket.io-client';
+import { useSocketUrl, useSocket } from '../contexts/context';
 
 export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeName }) {
   return (
@@ -42,7 +46,31 @@ export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeNa
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function getInitialRoute() {
+  const { url, setUrl } = useSocketUrl();
+  const { socket, connect } = useSocket();
 
+  AsyncStorage.getItem("@serverurl").then(sUrl => {
+    if (sUrl) {
+      api.checkserverstatus(new URL('checkserverstatus', sUrl).href).then(async response => {
+        // console.log(response.data.status)
+        if (response.data.status == 200) {
+          setUrl(sUrl)
+          connect(io(url))
+          return 'Root'
+        }
+      }, error => {
+        // console.log("error")
+        AsyncStorage.removeItem("@serverurl").then(success => {
+
+        })
+        return 'Login'
+      })
+    } else {
+      return 'Login'
+    }
+  }, error => {
+    return 'Login'
+  })
 }
 
 function RootNavigator() {

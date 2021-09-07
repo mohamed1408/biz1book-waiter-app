@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Button, StyleSheet, TextInput, ToastAndroid, TouchableOpacity } from 'react-native';
+import { ActivityIndicator, Button, StyleSheet, TextInput, ToastAndroid, TouchableOpacity } from 'react-native';
 import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { io } from 'socket.io-client';
@@ -14,26 +14,16 @@ export default function SettingScreen({ navigation }: RootTabScreenProps<'Settin
     const { url, setUrl } = useSocketUrl();
     const { socket, connect } = useSocket();
 
-    const [serverUrl, setServerUrl] = useState("");
+    const [serverUrl, setServerUrl] = useState(url.replace("http://", "").replace("https://", ""));
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState("");
 
-    useEffect(() => {
-        console.log(url)
-        const gethost = () => {
-            try {
-                return new URL(url).host
-            } catch (err) {
-                return ""
-            }
-        }
-        setServerUrl(gethost())
-    }, [""]);
     function _changeUrl(text: string) {
         setServerUrl(text)
     }
 
     async function updateUrl() {
+        setLoading(true)
         api.checkserverstatus(new URL('checkserverstatus', "http://" + serverUrl).href).then(async response => {
             console.log(response.data.status)
             setLoading(false)
@@ -65,15 +55,18 @@ export default function SettingScreen({ navigation }: RootTabScreenProps<'Settin
                     onChangeText={_changeUrl}
                     value={serverUrl}
                 />
-                <TouchableOpacity disabled={!serverUrl} onPress={() => updateUrl()} style={styles.link}>
-                    <Text style={styles.linkText}>Connect</Text>
-                </TouchableOpacity>
-                {/* <Button
-                    title="Save Url"
-                    color="#2f95dc"
-                    onPress={() => updateUrl()}
-                /> */}
+                {!loading ?
+                    (
+                        <TouchableOpacity disabled={!serverUrl} onPress={() => updateUrl()} style={styles.link}>
+                            <Text style={styles.linkText}>Connect</Text>
+                        </TouchableOpacity>
+                    ) :
+                    (
+                        <ActivityIndicator size="small" color="#0000ff" style={styles.link} />
+                    )}
+
             </View>
+            <Text style={styles.message}>{message}</Text>
         </View>
     );
 }
@@ -107,4 +100,8 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#2e78b7',
     },
+    message: {
+        fontSize: 16,
+        color: 'red',
+    }
 });

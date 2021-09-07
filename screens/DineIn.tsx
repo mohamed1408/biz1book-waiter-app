@@ -45,8 +45,13 @@ export default function DineInScreen({ navigation }: RootTabScreenProps<'DineIn'
         // console.log(error)
       }
     };
-
-    fetchData();
+    let mounted = true
+    if (mounted)
+      fetchData();
+      
+    return function cleanup() {
+      mounted = false
+    }
   }, []);
 
   const screenWidth = Dimensions.get('window').width

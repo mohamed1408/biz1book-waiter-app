@@ -5,6 +5,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { Platform, SafeAreaView, ScrollView, SectionList, StyleSheet, Dimensions, TouchableOpacity, Image, Modal, TextInput } from 'react-native';
 import { BottomSheet, Button, ListItem, SearchBar } from "react-native-elements";
 import { AntDesign, EvilIcons, FontAwesome, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import moment from 'moment'
 
 import { CartItem } from '../components/cartProduct';
 import { Text, View } from '../components/Themed';
@@ -37,6 +38,7 @@ interface IState {
     searchText: string
     trigger: boolean
     modalVisible: boolean
+    pickerOptions: any
 }
 
 class Cart extends React.Component<IProps, IState> {
@@ -50,6 +52,8 @@ class Cart extends React.Component<IProps, IState> {
         this._addItem = this._addItem.bind(this)
         this._scrollTo = this._scrollTo.bind(this)
         this._itemSeparator = this._itemSeparator.bind(this)
+        this._setCustomerDetails = this._setCustomerDetails.bind(this)
+        this.setDeliveryDate = this.setDeliveryDate.bind(this)
         // this._sectionSeparator = this._sectionSeparator.bind(this)
 
         this.state = {
@@ -87,15 +91,16 @@ class Cart extends React.Component<IProps, IState> {
                 _id: ''
             },
             searchText: '',
-            modalVisible: false
+            modalVisible: false,
+            pickerOptions: {}
         }
     }
 
     componentDidMount = async () => {
-        const {url} = this.props.route.params
+        const { url } = this.props.route.params
         // return
         const proddata = await (await Api.getproducts(new URL('getdbdata', url).href)).data
-        
+
         const orderData: string = await AsyncStorage.getItem('@order:edit') || '{}'
         const order: Order = JSON.parse(orderData)
         // console.log(order.diningtablekey, order.UserName, order.Items.length)
@@ -274,13 +279,47 @@ class Cart extends React.Component<IProps, IState> {
         })
     }
 
-    _saveOrder(socket: Socket) {
-        if ([2, 3, 4].includes(this.state.payload.OrderTypeId) && this.state.payload.InvoiceNo.includes('/'))
-            socket.emit('order:update', this.state.payload)
-        else
-            socket.emit('order:create', this.state.payload)
-        this.props.navigation.goBack(null);
+    _advancedOrderVal() {
+        var val = true
+        const { OrderTypeId, CustomerDetails, DeliveryDateTime } = this.state.payload
+        console.log(CustomerDetails?.PhoneNo, DeliveryDateTime)
+        if ([2, 3, 4].includes(this.state.payload.OrderTypeId)) {
+            if (!CustomerDetails?.PhoneNo) val = false
+            if (!DeliveryDateTime) val = false
+        }
+        return val
     }
+    _saveOrder(socket: Socket) {
+        if (this._advancedOrderVal()) {
+            console.log(this.state.payload.OrderTypeId,this.state.payload.InvoiceNo)
+            if ([2, 3, 4].includes(this.state.payload.OrderTypeId) && this.state.payload.InvoiceNo.includes('/'))
+                socket.emit('order:update', this.state.payload)
+            else
+                socket.emit('order:create', this.state.payload)
+            this.props.navigation.goBack(null);
+        } else {
+            this.setState({ modalVisible: true })
+        }
+    }
+    _setCustomerDetails(key: string, val: any) {
+        var cDetails: any = this.state.payload.CustomerDetails || {}
+        cDetails[key] = val
+        this.state.payload.CustomerDetails = cDetails
+        this.setState({ payload: this.state.payload })
+    }
+
+    setDeliveryDate(event: any, selectedDate: any) {
+        console.log(event, selectedDate)
+        if (this.state.pickerOptions.mode == 'date' && event.type == 'set') {
+            this.state.payload.DeliveryDateTime = moment(selectedDate).format("YYYY-MM-DD") + this.state.payload.DeliveryDateTime
+            this.setState({ payload: this.state.payload, pickerOptions: { show: true, mode: 'time' } })
+        } else if (this.state.pickerOptions.mode == 'time' && event.type == 'set') {
+            this.state.payload.DeliveryDateTime = this.state.payload.DeliveryDateTime + ' ' + moment(selectedDate).format("hh:mm")
+            this.setState({ payload: this.state.payload, pickerOptions: { show: false, mode: '' } })
+        }
+        console.log(this.state.payload.DeliveryDateTime)
+    }
+
     render() {
         const { list, categories, modalVisible } = this.state
         const screenHeight = Dimensions.get('window').height;
@@ -393,35 +432,78 @@ class Cart extends React.Component<IProps, IState> {
                     </View>
                     <View style={styles.separator} lightColor="lightgrey" darkColor="rgba(255,255,255,0.1)" />
                     <ScrollView style={[{ maxHeight: screenHeight * 0.65, minHeight: screenHeight * 0.65, backgroundColor: 'white' }]}>
-                        <View style={[{ flexDirection: 'row' }]}>
+                        <View style={[styles.detailRowView]}>
                             <Text style={[{ alignSelf: 'center', flex: 1 }]}>Phone No</Text>
                             <TextInput
                                 placeholder="Enter PhoneNo"
-                                keyboardType="default"
+                                keyboardType="phone-pad"
+                                value={this.state.payload.CustomerDetails?.PhoneNo}
+                                onChangeText={((text) => this._setCustomerDetails("PhoneNo",text))}
                                 style={[{ margin: 10, padding: 5, flex: 3, borderWidth: 1 }]}
                                 autoFocus={true}
                             />
                         </View>
-                        <View style={[{ flexDirection: 'row' }]}>
+                        <View style={[styles.detailRowView]}>
                             <Text style={[{ alignSelf: 'center', flex: 1 }]}>Name</Text>
                             <TextInput
                                 placeholder="Enter Name"
                                 keyboardType="default"
+                                value={this.state.payload.CustomerDetails?.Name}
+                                onChangeText={((text) => this._setCustomerDetails("Name",text))}
                                 style={[{ margin: 10, padding: 5, flex: 3, borderWidth: 1 }]}
                             />
                         </View>
-                        <View style={[{ flexDirection: 'row' }]}>
+                        <View style={[styles.detailRowView]}>
                             <Text style={[{ alignSelf: 'center', flex: 1 }]}>Address</Text>
                             <TextInput
                                 placeholder="Enter Address"
                                 keyboardType="default"
+                                value={this.state.payload.CustomerDetails?.Address}
+                                onChangeText={((text) => this._setCustomerDetails("Address",text))}
                                 style={[{ margin: 10, padding: 5, flex: 3, borderWidth: 1 }]}
                                 multiline={true}
                             />
                         </View>
-                    </ScrollView>
-                </BottomSheet>
+                        <View style={[styles.detailRowView]}>
+                            <Text style={[{ alignSelf: 'center', flex: 1 }]}>DeliveryTime</Text>
+                            <Text style={[{ alignSelf: 'center', flex: 2 }]}>{moment(this.state.payload.DeliveryDateTime).format('MMMM Do YYYY, h:mm a')}</Text>
+                            <TouchableOpacity onPress={() => this.setState({ pickerOptions: { show: true, mode: 'date' } })} style={[{ flex: 1 }]}>
+                                <AntDesign size={20} name="calendar" color="#d5d5d6" />
+                            </TouchableOpacity>
+                            {/* <TextInput
+                                placeholder="Enter Address"
+                                keyboardType="default"
+                                style={[{ margin: 10, padding: 5, flex: 3, borderWidth: 1 }]}
+                                multiline={true}
+                            /> */}
+                        </View>
 
+                    </ScrollView>
+                    <Button
+                        style={[{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                        }]}
+                        disabled={this.state.payload?.Items.filter(x => x.Quantity > 0).length == 0}
+                        title="Save Order"
+                        onPressIn={() => {
+                            this._saveOrder(socket)
+                            // socket.emit('order:create', this.state.payload)
+                            // this.props.navigation.goBack(null);
+                        }}
+                    />
+                </BottomSheet>
+                {this.state.pickerOptions.show && (
+                    <DateTimePicker
+                        testID="dateTimePicker"
+                        value={new Date(this.state.payload.DeliveryDateTime || new Date().getTime())}
+                        mode={this.state.pickerOptions.mode}
+                        is24Hour={true}
+                        display="default"
+                        onChange={this.setDeliveryDate}
+                    />
+                )}
             </SafeAreaView>
         );
     }
@@ -495,6 +577,10 @@ const styles = StyleSheet.create({
     modalText: {
         marginBottom: 15,
         textAlign: "center"
+    },
+    detailRowView: {
+        flexDirection: 'row',
+        paddingHorizontal: 10
     }
 });
 
