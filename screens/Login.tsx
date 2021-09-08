@@ -18,19 +18,20 @@ export default function LoginScreen({ navigation }: RootStackScreenProps<'Login'
 
     async function checkStorageUrl() {
         const sUrl: string = await AsyncStorage.getItem("@serverurl") || ''
+        console.log("lserver url: ",sUrl)
         api.checkserverstatus(new URL('checkserverstatus', sUrl).href).then(async response => {
             // console.log(response.data.status)
             if (response.data.status == 200) {
                 setUrl(sUrl)
-                connect(io(url))
+                connect(io(sUrl))
                 setMessage("")
-                // await AsyncStorage.setItem("@serverurl", sUrl)
+                await AsyncStorage.setItem("@serverurl", sUrl)
                 ToastAndroid.show("Connection established", ToastAndroid.SHORT)
                 navigation.replace('Root')
             }
         }, async error => {
-            // console.log("error")
-            await AsyncStorage.removeItem("@serverurl")
+            console.log("error")
+            // await AsyncStorage.removeItem("@serverurl")
         })
     }
     checkStorageUrl()
@@ -47,11 +48,11 @@ export default function LoginScreen({ navigation }: RootStackScreenProps<'Login'
             console.log(response.data.status)
             setLoading(false)
             if (response.data.status == 200) {
-                await setUrl("http://" + serverUrl)
+                setUrl("http://" + serverUrl)
                 console.log(url, serverUrl)
-                await connect(io("http://" + serverUrl))
+                connect(io("http://" + serverUrl))
                 setMessage("")
-                await AsyncStorage.setItem("@serverurl", "http://" + serverUrl)
+                AsyncStorage.setItem("@serverurl", "http://" + serverUrl).then(data => console.log("async st success","http://" + serverUrl), error => console.log("async st error",error))
                 ToastAndroid.show("Connection established", ToastAndroid.SHORT)
                 navigation.navigate('Root')
             }

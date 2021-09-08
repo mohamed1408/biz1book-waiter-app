@@ -45,34 +45,6 @@ export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeNa
  */
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-function getInitialRoute() {
-  const { url, setUrl } = useSocketUrl();
-  const { socket, connect } = useSocket();
-
-  AsyncStorage.getItem("@serverurl").then(sUrl => {
-    if (sUrl) {
-      api.checkserverstatus(new URL('checkserverstatus', sUrl).href).then(async response => {
-        // console.log(response.data.status)
-        if (response.data.status == 200) {
-          setUrl(sUrl)
-          connect(io(url))
-          return 'Root'
-        }
-      }, error => {
-        // console.log("error")
-        AsyncStorage.removeItem("@serverurl").then(success => {
-
-        })
-        return 'Login'
-      })
-    } else {
-      return 'Login'
-    }
-  }, error => {
-    return 'Login'
-  })
-}
-
 function RootNavigator() {
   return (
     <Stack.Navigator initialRouteName={"Login"}>

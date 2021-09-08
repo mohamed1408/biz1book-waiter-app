@@ -84,7 +84,17 @@ export default function PickupScreen({ navigation }: RootTabScreenProps<'Pickup'
             JSON.stringify(oHelper.neworder(_orderOptions()))
         );
         // socket.emit('order:create', oHelper.newPayload(_orderOptions()))
-        navigation.navigate('Cart',{url:url})
+        navigation.navigate('Cart', { url: url })
+    }
+
+    async function _editOrder(order: Order) {
+        await AsyncStorage.removeItem('@order:edit')
+        await AsyncStorage.setItem(
+            '@order:edit',
+            JSON.stringify(order)
+        );
+        // socket.emit('order:create', oHelper.newPayload(_orderOptions()))
+        navigation.navigate('Cart', { url: url })
     }
 
     function _onreferesh() {
@@ -130,7 +140,9 @@ export default function PickupScreen({ navigation }: RootTabScreenProps<'Pickup'
     function _renderOrder(item: any, index: number) {
         const order: Order = item
         return (
-            <View style={[styles.item, styles.orderLI, { marginTop: index == 0 ? 30 : 0 }]}>
+            <TouchableOpacity style={[styles.item, styles.orderLI, { marginTop: index == 0 ? 30 : 0 }]}
+                onPress={() => _editOrder(order)}
+            >
                 <View style={[{ flex: 2 }]}>
                     {/* <Text>{order.InvoiceNo}</Text> */}
                     <TouchableOpacity style={[{ marginBottom: 10 }]}>
@@ -142,7 +154,7 @@ export default function PickupScreen({ navigation }: RootTabScreenProps<'Pickup'
                 <Text style={[{ flex: 1, alignSelf: 'center' }]}>{order.BillAmount}</Text>
                 <Text style={[{ flex: 1, alignSelf: 'center' }]}>{order.PaidAmount}</Text>
                 <Text style={[{ flex: 1, alignSelf: 'center' }]}>{orderstatuses.filter(x => x.sid == order.OrderStatusId)[0].name}</Text>
-            </View>
+            </TouchableOpacity>
         )
     }
 

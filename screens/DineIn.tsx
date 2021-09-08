@@ -9,7 +9,7 @@ import oHelper from '../utils/orderHelper'
 import axios from 'axios'
 import { FlatList } from 'react-native-gesture-handler';
 import { Order, OrderPayload, RootTabParamList, RootTabScreenProps } from '../types';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ParamListBase } from '@react-navigation/native';
 import { EvilIcons, FontAwesome, MaterialIcons } from '@expo/vector-icons';
@@ -52,31 +52,33 @@ export default function DineInScreen({ navigation }: RootTabScreenProps<'DineIn'
   const [showFloors, setShowFloors] = useState(false);
   const [currentFloor, setCurrentFloor] = useState("undefined");
   const [currentFloorId, setCurrentFloorId] = useState(0);
+  const [clean, setCleanState] = useState(true);
 
   const cache: any = {}
-
+  const componentIsMounted = useRef(true)
   useEffect(() => {
     const fetchData = async () => {
+      console.log(clean)
       try {
         const response = await api.getdineindata(new URL('getdbdata', url).href)
         const data = await response.data
         cache["diningarea"] = data.diningarea
         cache["diningtable"] = data.diningtable
-        setAreas(cache.diningarea)
-        setTables(_sortTable(cache.diningtable))
-        setCurrentFloor(cache["diningarea"][0].DiningArea)
-        setCurrentFloorId(cache["diningarea"][0].Id)
-        _eventregistration()
+        if (componentIsMounted.current) {
+          setAreas(cache.diningarea)
+          setTables(_sortTable(cache.diningtable))
+          setCurrentFloor(cache["diningarea"][0].DiningArea)
+          setCurrentFloorId(cache["diningarea"][0].Id)
+          _eventregistration()
+        }
       } catch (error) {
         // console.log(error)
       }
     };
-    let mounted = true
-    if (mounted)
-      fetchData();
+    fetchData();
 
     return function cleanup() {
-      mounted = false
+      componentIsMounted.current = false
     }
   }, []);
 

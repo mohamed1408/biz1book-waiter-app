@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StatusBar } from 'expo-status-bar';
 import * as React from 'react';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { Platform, SafeAreaView, ScrollView, SectionList, StyleSheet, Dimensions, TouchableOpacity, Image, Modal, TextInput } from 'react-native';
+import { Platform, SafeAreaView, ScrollView, SectionList, StyleSheet, Dimensions, TouchableOpacity, Image, Modal, TextInput, Vibration } from 'react-native';
 import { Badge, BottomSheet, Button, ListItem, SearchBar } from "react-native-elements";
 import { AntDesign, EvilIcons, FontAwesome, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import moment from 'moment'
@@ -131,6 +131,8 @@ class Cart extends React.Component<IProps, IState> {
         }
 
         var payload: OrderPayload = oHelper.newPayload(options)
+        payload.CustomerDetails = order.CustomerDetails
+        payload.DeliveryDateTime = order.DeliveryDateTime
         payload.Items = order.Items
         this.setState({ products: product, cartData: categories, payload: payload, screenHeight: Dimensions.get('window').height, screenWidth: Dimensions.get('window').width })
         // console.log(order.OrderTypeId, options.typeid, this.state.payload.OrderTypeId)
@@ -333,7 +335,11 @@ class Cart extends React.Component<IProps, IState> {
         }
         console.log(this.state.payload.DeliveryDateTime)
     }
-
+    _onLongPress(product: any) {
+        console.log("longPress")
+        Vibration.vibrate(70)
+        this._addFromCart(product, 0)
+    }
     render() {
         const { list, categories, modalVisible } = this.state
         const screenHeight = Dimensions.get('window').height;
@@ -373,11 +379,11 @@ class Cart extends React.Component<IProps, IState> {
                     renderSectionHeader={({ section: { Category, Parent, Id } }) => this._sectionHeader(Category, Parent, Id)}
                 />
                 <Button
-                    style={[{position: 'absolute',bottom: 0}]}
+                    style={[{ position: 'absolute', bottom: 0 }]}
                     containerStyle={[{ height: 50 }]}
                     disabled={this.state.payload?.Items.filter(x => x.Quantity > 0).length == 0}
                     title="Save Order"
-                    onPress={() => {this._saveOrder(socket)}}/>
+                    onPress={() => { this._saveOrder(socket) }} />
                 {/* <Modal
                     animationType="fade"
                     transparent={true}
@@ -407,36 +413,38 @@ class Cart extends React.Component<IProps, IState> {
                     }}>
                     <View style={[{ backgroundColor: 'white', flexDirection: 'row', paddingHorizontal: 10, paddingVertical: 20, justifyContent: 'center', borderTopLeftRadius: 10, borderTopRightRadius: 10 }]}>
                         <Text style={[{ fontSize: 20, flex: 1 }]}>Cart Items</Text>
-                        <TouchableOpacity style={[{ alignSelf: 'flex-end' }]} onPress={() => this.setState({ isVisible: false })}>
+                        <TouchableOpacity style={[{ alignSelf: 'flex-end', padding: 5 }]} onPress={() => this.setState({ isVisible: false })}>
                             <EvilIcons size={30} name="close" color="black" style={[{ alignSelf: 'flex-end' }]} />
                         </TouchableOpacity>
                     </View>
                     <View style={styles.separator} lightColor="lightgrey" darkColor="rgba(255,255,255,0.1)" />
                     <ScrollView style={[{ maxHeight: screenHeight * 0.65, minHeight: screenHeight * 0.65, backgroundColor: 'white' }]}>
+                        <Text style={[{ fontSize: 15, fontStyle: 'italic', color: 'red' }]}>LongPress an item to remove from cart</Text>
                         {this.state.payload.Items.filter(x => x.Quantity > 0).map((l: any, i: number) => (
-                            <ListItem key={i}>
+                            <ListItem key={i} onLongPress={() => this._onLongPress(l)}>
                                 <ListItem.Content>
                                     <ListItem.Title>{l.showname}</ListItem.Title>
                                     <ListItem.Subtitle>₹ {l.Price} x {l.Quantity} {l.ComplementryQty > 0 ? '+' + l.ComplementryQty : null}</ListItem.Subtitle>
                                 </ListItem.Content>
                                 <ListItem.Content right>
-                                    <TouchableOpacity
+                                    {/* <TouchableOpacity
                                         style={[{ flex: 1, paddingVertical: 10, paddingLeft: 3 }]}
                                         onPress={() => this._addFromCart(l, 0)}>
                                         <AntDesign size={20} name="delete" color="red" style={[{ marginRight: 10 }]} />
-                                    </TouchableOpacity>
+                                    </TouchableOpacity> */}
                                     <View
-                                        style={[{ borderWidth: 1, borderColor: '#dadde2', backgroundColor: 'white', elevation: 5, alignSelf: 'center', width: this.state.screenWidth * 0.25, borderRadius: 5, flexDirection: 'row' }]}>
+                                        style={[{ borderWidth: 1, borderColor: '#dadde2', backgroundColor: 'white', elevation: 5, alignSelf: 'center', width: screenWidth * 0.25, borderRadius: 5, flexDirection: 'row' }]}>
                                         <TouchableOpacity
+                                            disabled={l.Quantity <= 1}
                                             style={[{ flex: 1, paddingVertical: 10, paddingLeft: 3 }]}
                                             onPress={() => this._addFromCart(l, l.Quantity - 1)}>
-                                            <AntDesign size={20} name="minus" color="#d5d5d6" style={[{ marginRight: 10 }]} />
+                                            <AntDesign size={20} name="minus" color="#d5d5d6" style={[{ marginRight: 10, alignSelf: 'center' }]} />
                                         </TouchableOpacity>
-                                        <Text style={[{ alignSelf: 'center', flex: 1, fontSize: 15 }]}>{l.Quantity}</Text>
+                                        <Text style={[{ alignSelf: 'center', position: 'absolute', fontSize: 15, left: '40%' }]}>{l.Quantity}</Text>
                                         <TouchableOpacity
                                             style={[{ flex: 1, paddingVertical: 10 }]}
                                             onPress={() => this._addFromCart(l, l.Quantity + 1)}>
-                                            <AntDesign size={20} name="plus" color="green" style={[{ marginRight: 10 }]} />
+                                            <AntDesign size={20} name="plus" color="green" style={[{ marginRight: 10, alignSelf: 'center' }]} />
                                         </TouchableOpacity>
                                     </View>
                                 </ListItem.Content>
@@ -444,11 +452,11 @@ class Cart extends React.Component<IProps, IState> {
                         ))}
                     </ScrollView>
                     <Button
-                        style={[{position: 'absolute',bottom: 0}]}
+                        style={[{ position: 'absolute', bottom: 0 }]}
                         containerStyle={[{ height: 50 }]}
                         disabled={this.state.payload?.Items.filter(x => x.Quantity > 0).length == 0}
                         title="Save Order"
-                        onPress={() => {this._saveOrder(socket)}}/>
+                        onPress={() => { this._saveOrder(socket) }} />
                 </BottomSheet>
                 {/* CATEGORY BS */}
                 <BottomSheet
