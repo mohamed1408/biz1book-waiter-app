@@ -21,7 +21,23 @@ const cartItem: FC<Props> = ({ product, searchText, addItem, screenWidth, screen
         "3": images.egg,
         "4": images.none
     }
-    if (product.Product.toLowerCase().includes(searchText))
+
+    const _filter = (name: string) => {
+        if (name.toLowerCase().includes(searchText)) return true
+
+        if (searchText.includes(' ')) {
+            var subTerms = searchText.split(' ')
+            var name_substring = name.split(' ')
+            var match = true
+            if (subTerms.length > name_substring.length) match = false
+            name_substring.forEach((ns, i) => {
+                if (match && i < subTerms.length)
+                    if (!ns.toLowerCase().startsWith(subTerms[i].toLowerCase())) match = false
+            })
+            return match
+        }
+    }
+    if (_filter(product.Product))
         return (
             <View style={styles.item}>
                 <View style={[{ flex: 3 }]}>
