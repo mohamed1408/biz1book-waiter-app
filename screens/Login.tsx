@@ -26,7 +26,7 @@ export default function LoginScreen({ navigation }: RootStackScreenProps<'Login'
                 connect(io(sUrl))
                 setMessage("")
                 await AsyncStorage.setItem("@serverurl", sUrl)
-                ToastAndroid.show("Connection established", ToastAndroid.SHORT)
+                // ToastAndroid.show("Connection established", ToastAndroid.SHORT)
                 navigation.replace('Root')
             }
         }, async error => {

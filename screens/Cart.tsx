@@ -340,6 +340,9 @@ class Cart extends React.Component<IProps, IState> {
         Vibration.vibrate(70)
         this._addFromCart(product, 0)
     }
+    _clearOrder(socket:Socket) {
+        socket.emit('order:create', this.state.payload)
+     }
     render() {
         const { list, categories, modalVisible } = this.state
         const screenHeight = Dimensions.get('window').height;
@@ -347,9 +350,13 @@ class Cart extends React.Component<IProps, IState> {
         const { socket, connect } = this.context
         return (
             <SafeAreaView style={styles.container}>
-                <View>
+                <View style={[{flexDirection:'row'}]}>
+                    <TouchableOpacity onPress={() => this._clearOrder(socket)} style={[styles.link, {flex: 1, paddingHorizontal: 10, alignSelf: 'center'}]}>
+                        <Text style={styles.linkText}>Clear Order</Text>
+                    </TouchableOpacity>
+
                     <TouchableOpacity
-                        // style={[{ flex: 1, paddingVertical: 10 }]}
+                        style={[{ flex: 1 }]}
                         disabled={this.state.payload.Items.filter(x => x.Quantity > 0).length == 0}
                         onPress={() => this.setState({ isVisible: true })}
                     >
@@ -360,12 +367,12 @@ class Cart extends React.Component<IProps, IState> {
                             value={this.state.payload.Items.filter(x => x.Quantity > 0).length}
                         />}
                     </TouchableOpacity>
-                    <SearchBar
-                        placeholder="Type Here..."
-                        platform="android"
-                        onChangeText={(text) => this.setState({ searchText: text.toLowerCase() })}
-                    />
                 </View>
+                <SearchBar
+                    placeholder="Type Here..."
+                    platform="android"
+                    onChangeText={(text) => this.setState({ searchText: text.toLowerCase() })}
+                />
                 <SectionList
                     ref={(sectionList) => { this.sectionList = sectionList }}
                     style={[{ maxHeight: '80%' }]}
@@ -623,7 +630,15 @@ const styles = StyleSheet.create({
     detailRowView: {
         flexDirection: 'row',
         paddingHorizontal: 10
-    }
+    },
+    link: {
+        marginTop: 15,
+        paddingVertical: 15,
+    },
+    linkText: {
+        // fontSize: 14,
+        color: '#2e78b7',
+    },
 });
 
 export default Cart
