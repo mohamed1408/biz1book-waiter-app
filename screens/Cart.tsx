@@ -100,7 +100,6 @@ class Cart extends React.Component<IProps, IState> {
         const { url } = this.props.route.params
         // return
         const proddata = await (await Api.getproducts(new URL('getdbdata', url).href)).data
-
         const orderData: string = await AsyncStorage.getItem('@order:edit') || '{}'
         const order: Order = JSON.parse(orderData)
         // console.log(order.diningtablekey, order.UserName, order.Items.length)
@@ -117,7 +116,7 @@ class Cart extends React.Component<IProps, IState> {
             product.filter((x: any) => x.Id == it.ProductId)[0].Quantity = it.Quantity
         })
         categories.forEach((cat: any) => {
-            cat.Parent = proddata.category.filter((x: any) => x.Id == cat.ParentId)[0].Category
+            // cat.Parent = proddata.category.filter((x: any) => x.Id == cat.ParentId)[0].Category
             cat.data = product.filter((x: any) => x.CategoryId == cat.Id)
         })
         const options = {
@@ -219,7 +218,7 @@ class Cart extends React.Component<IProps, IState> {
             return (<View></View>)
         }
     }
-    _sectionHeader(Category: any, Parent: any, Id: any) {
+    _sectionHeader(Category: any, Id: any) {
         if (this.state.searchText) {
             return (<View></View>)
         } else {
@@ -386,11 +385,11 @@ class Cart extends React.Component<IProps, IState> {
                     renderItem={({ item, index }) => <CartItem product={item} searchText={this.state.searchText} addItem={this._addItem} screenWidth={screenWidth} screenHeight={screenHeight} trigger={this.state.trigger} />}
                     onScrollToIndexFailed={this._scrollToIndexFailed}
                     // SectionSeparatorComponent={({highlighted, }) => this._sectionSeparator(trailing)}
-                    renderSectionHeader={({ section: { Category, Parent, Id } }) => this._sectionHeader(Category, Parent, Id)}
+                    renderSectionHeader={({ section: { Category, Id } }) => this._sectionHeader(Category, Id)}
                 />
                 <Button
-                    style={[{ position: 'absolute', bottom: 0 }]}
-                    containerStyle={[{ height: 50 }]}
+                    style={[{ height: 150 }]}
+                    // containerStyle={[{ height: 150 }]}
                     disabled={this.state.payload?.Items.filter(x => x.Quantity > 0).length == 0}
                     title="Save Order"
                     onPress={() => { this._saveOrder(socket) }} />

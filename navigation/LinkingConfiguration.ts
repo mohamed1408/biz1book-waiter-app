@@ -43,6 +43,7 @@ const linking: LinkingOptions<RootStackParamList> = {
         },
       },
       Login: 'login',
+      Camera: 'camera',
       Modal: 'modal',
       NotFound: '*',
     },

@@ -3,6 +3,7 @@ import * as React from 'react';
 import { useState } from 'react';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View, ToastAndroid, ActivityIndicator } from 'react-native';
 import { io } from 'socket.io-client';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import { useSocket, useSocketUrl } from '../contexts/context';
 import { RootStackScreenProps } from '../types';
@@ -18,7 +19,7 @@ export default function LoginScreen({ navigation }: RootStackScreenProps<'Login'
 
     async function checkStorageUrl() {
         const sUrl: string = await AsyncStorage.getItem("@serverurl") || ''
-        console.log("lserver url: ",sUrl)
+        console.log("lserver url: ", sUrl)
         api.checkserverstatus(new URL('checkserverstatus', sUrl).href).then(async response => {
             // console.log(response.data.status)
             if (response.data.status == 200) {
@@ -52,7 +53,7 @@ export default function LoginScreen({ navigation }: RootStackScreenProps<'Login'
                 console.log(url, serverUrl)
                 connect(io("http://" + serverUrl))
                 setMessage("")
-                AsyncStorage.setItem("@serverurl", "http://" + serverUrl).then(data => console.log("async st success","http://" + serverUrl), error => console.log("async st error",error))
+                AsyncStorage.setItem("@serverurl", "http://" + serverUrl).then(data => console.log("async st success", "http://" + serverUrl), error => console.log("async st error", error))
                 ToastAndroid.show("Connection established", ToastAndroid.SHORT)
                 navigation.navigate('Root')
             }
@@ -66,6 +67,11 @@ export default function LoginScreen({ navigation }: RootStackScreenProps<'Login'
 
     return (
         <View style={styles.container}>
+            <TouchableOpacity
+                style={[{ position: 'absolute', top: '5%', right: '10%' }]}
+                onPress={() => navigation.navigate('Camera')}>
+                <MaterialCommunityIcons name="qrcode-scan" size={24} color="black" />
+            </TouchableOpacity>
             <TextInput
                 style={styles.input}
                 onChangeText={onInput}
@@ -99,6 +105,7 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 20,
         fontWeight: 'bold',
+        color: 'black'
     },
     message: {
         fontSize: 16,
