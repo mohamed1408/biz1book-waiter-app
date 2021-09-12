@@ -108,10 +108,12 @@ export default function DineInScreen({ navigation }: RootTabScreenProps<'DineIn'
   function _getData() {
     console.log("fetching data")
     api.getdineindata(new URL('getdbdata', url).href).then(response => {
-      setAreas(response.data.diningarea)
-      setTables(_sortTable(response.data.diningtable))
-      setRefresState(false)
-      console.log("succss")
+      if (componentIsMounted.current) {
+        setAreas(response.data.diningarea)
+        setTables(_sortTable(response.data.diningtable))
+        setRefresState(false)
+        console.log("succss")
+      }
     }, error => {
       setRefresState(false)
       console.log("error")
@@ -195,12 +197,21 @@ export default function DineInScreen({ navigation }: RootTabScreenProps<'DineIn'
     _getData()
   }
 
+  function _split(tablekey: string) {
+    console.log('split table: ' + tablekey)
+    if (tablekey.includes('_'))
+      socket.emit("table:remove", { tablekey: tablekey })
+    else
+      socket.emit("table:split", { tablekey: tablekey })
+
+  }
   function _renderTable(table: any) {
     const tableW = ((screenWidth - styles.tblList.padding * 2) / 3) - styles.table.margin * 2
     const oarr = [111, 112, 113]
     return (
       <TouchableOpacity
         onPress={() => _editOrder(table.item.TableKey)}
+        onLongPress={() => _split(table.item.TableKey)}
         style={[styles.table, { width: tableW, borderBottomColor: _tableColor(table.item.TableStatusId) }]}>
         <Text style={[{ fontWeight: 'bold', fontSize: 15 }]}>{table.item.TableName}</Text>
         <Text style={[{ color: '#5f5f5f' }]}>{table.item.UserName}</Text>

@@ -340,9 +340,12 @@ class Cart extends React.Component<IProps, IState> {
         Vibration.vibrate(70)
         this._addFromCart(product, 0)
     }
-    _clearOrder(socket:Socket) {
-        socket.emit('order:create', this.state.payload)
-     }
+    _clearOrder(socket: Socket) {
+        const { payload } = this.state
+        payload.Items = []
+        socket.emit('order:clear', payload)
+        this.props.navigation.goBack(null);
+    }
     render() {
         const { list, categories, modalVisible } = this.state
         const screenHeight = Dimensions.get('window').height;
@@ -350,8 +353,8 @@ class Cart extends React.Component<IProps, IState> {
         const { socket, connect } = this.context
         return (
             <SafeAreaView style={styles.container}>
-                <View style={[{flexDirection:'row'}]}>
-                    <TouchableOpacity onPress={() => this._clearOrder(socket)} style={[styles.link, {flex: 1, paddingHorizontal: 10, alignSelf: 'center'}]}>
+                <View style={[{ flexDirection: 'row' }]}>
+                    <TouchableOpacity onPress={() => this._clearOrder(socket)} style={[styles.link, { flex: 1, paddingHorizontal: 10, alignSelf: 'center' }]}>
                         <Text style={styles.linkText}>Clear Order</Text>
                     </TouchableOpacity>
 
