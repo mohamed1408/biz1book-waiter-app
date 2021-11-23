@@ -80,9 +80,12 @@ export default function DineInScreen({ navigation }: RootTabScreenProps<'DineIn'
       }
     };
     fetchData();
-
+    // const unsubscribe = navigation.addListener('gestureStart', (e) => {
+    //   console.log("screen gesture",e)
+    // });
     return function cleanup() {
-      componentIsMounted.current = false
+      componentIsMounted.current = false;
+      // unsubscribe;
     }
   }, []);
 
@@ -110,13 +113,16 @@ export default function DineInScreen({ navigation }: RootTabScreenProps<'DineIn'
   }
 
   function _getData() {
-    console.log("fetching data")
+    // console.log("fetching data: ", new URL('getdbdata', url).href, socket.connected)
     api.getdineindata(new URL('getdbdata', url).href).then(response => {
       if (componentIsMounted.current) {
         setAreas(response.data.diningarea)
         setTables(_sortTable(response.data.diningtable))
         setRefresState(false)
         console.log("succss")
+        response.data.diningtable.forEach((tbl: any, i: number) => {
+          console.log(tbl.TableName, tbl.TableStatusId)
+        });
       }
     }, error => {
       setRefresState(false)
@@ -154,7 +160,7 @@ export default function DineInScreen({ navigation }: RootTabScreenProps<'DineIn'
     })
 
     socket.on("tableorder:update", (_payload) => {
-      // console.log("tableorder:update")
+      console.log("tableorder:update")
       _getData()
     })
   }
@@ -227,15 +233,15 @@ export default function DineInScreen({ navigation }: RootTabScreenProps<'DineIn'
           if (table.item.TableStatusId != 0 && swapping) {
             setSwapData({ fromTableKey: table.item.TableKey, toTableKey: '' })
             setModal(true)
-          } else if(table.item.TableStatusId == 0 && swapping) {
+          } else if (table.item.TableStatusId == 0 && swapping) {
             // _editOrder(table.item.TableKey)
-          } else if(!swapping) {
+          } else if (!swapping) {
             _editOrder(table.item.TableKey)
           }
         }}
         onLongPress={() => {
-          // if (!swapping)
-          _split(table.item.TableKey)
+          if (table.item.TableStatusId != 0 || table.item.TableKey.includes('_'))
+            _split(table.item.TableKey)
         }}
         style={[styles.table, { width: tableW, borderBottomColor: _tableColor(table.item.TableStatusId) }]}>
         <Text style={[{ fontWeight: 'bold', fontSize: 15 }]}>{table.item.TableName}</Text>
@@ -307,8 +313,8 @@ export default function DineInScreen({ navigation }: RootTabScreenProps<'DineIn'
             <View key={"view" + i}>
               <Text>{l.DiningArea}</Text>
               {tables.filter(x => x.DiningAreaId == l.Id && x.TableStatusId == 0).map((tbl: any, ti: number) => (
-                <ListItem bottomDivider key={i.toString()+ti.toString()} onPress={() => _swap(tbl.TableKey)}>
-                  <ListItem.Content style={[{height: 70}]}>
+                <ListItem bottomDivider key={i.toString() + ti.toString()} onPress={() => _swap(tbl.TableKey)}>
+                  <ListItem.Content style={[{ height: 70 }]}>
                     <ListItem.Title>{tbl.TableName}</ListItem.Title>
                   </ListItem.Content>
                 </ListItem>
@@ -353,9 +359,9 @@ export default function DineInScreen({ navigation }: RootTabScreenProps<'DineIn'
       <FAB
         // visible={!swapping}
         style={[{ position: 'absolute', bottom: '5%', right: '5%' }]}
-        icon={{ name: swapping? 'close': 'swap-horiz', color: '#2f95dc' }}
+        icon={{ name: swapping ? 'close' : 'swap-horiz', color: '#2f95dc' }}
         color={'#ffff'}
-        onPress={() => {setSwap(!swapping)}}
+        onPress={() => { setSwap(!swapping) }}
       />
     </View>
   );

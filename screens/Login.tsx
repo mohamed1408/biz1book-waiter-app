@@ -70,7 +70,7 @@ export default function LoginScreen({ navigation }: RootStackScreenProps<'Login'
             <TouchableOpacity
                 style={[{ position: 'absolute', top: '5%', right: '10%' }]}
                 onPress={() => navigation.navigate('Camera')}>
-                <MaterialCommunityIcons name="qrcode-scan" size={24} color="black" />
+                <MaterialCommunityIcons name="qrcode-plus" size={24} color="black" />
             </TouchableOpacity>
             <TextInput
                 style={styles.input}

@@ -40,12 +40,17 @@ const clearorder = (url: string, options: any) => {
     return axios.post(url, options)
 }
 
+const getqrurl = (url: string, options: any) => {
+    return axios.post(url, options)
+}
+
 export default {
     get: (url: string, options: { params?: {} | undefined; queries?: {} | undefined; payloads?: {} | undefined; headers?: {} | undefined; } | undefined) => execute(url, 'GET', options),
     post: (url: string, options: { params?: {} | undefined; queries?: {} | undefined; payloads?: {} | undefined; headers?: {} | undefined; } | undefined) => execute(url, 'POST', options),
     patch: (url: string, options: { params?: {} | undefined; queries?: {} | undefined; payloads?: {} | undefined; headers?: {} | undefined; } | undefined) => execute(url, 'PATCH', options),
     delete: (url: string, options: { params?: {} | undefined; queries?: {} | undefined; payloads?: {} | undefined; headers?: {} | undefined; } | undefined) => execute(url, 'DELETE', options),
     getdata: (url: string, options: any) => getdata(url, options),
+    getqrurl: (url: string, options: any) => getqrurl(url, options),
     clearorder: (url: string, options: any) => clearorder(url, options),
     getproducts: (url: string) => getproducts(url),
     getdineindata: (url: string) => getdineindata(url),

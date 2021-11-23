@@ -3,7 +3,7 @@
  * https://reactnavigation.org/docs/getting-started
  *
  */
-import { MaterialIcons } from '@expo/vector-icons';
+import { AntDesign, MaterialIcons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -51,7 +51,7 @@ function RootNavigator() {
     <Stack.Navigator initialRouteName={"Login"}>
       <Stack.Screen name="Camera" component={Camera} options={{ headerShown: false }} />
       <Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
-      <Stack.Screen name="Root" component={BottomTabNavigator} options={{ headerShown: false }} />
+      <Stack.Screen name="Root" component={BottomTabNavigator} options={{ headerShown: false, contentStyle: { backgroundColor: 'white' } }} />
       <Stack.Screen name="NotFound" component={NotFoundScreen} options={{ title: 'Oops!' }} />
       <Stack.Group screenOptions={{ presentation: 'modal' }}>
         <Stack.Screen name="Modal" component={ModalScreen} />
@@ -76,6 +76,9 @@ function BottomTabNavigator() {
       initialRouteName="DineIn"
       screenOptions={{
         tabBarActiveTintColor: Colors[colorScheme].tint,
+        tabBarInactiveTintColor: Colors[colorScheme].tabIconDefault,
+        tabBarStyle: { backgroundColor: '#ABD2F0', bottom: 10, marginHorizontal: 20, height: 100, borderRadius: 20 },
+        tabBarItemStyle: { paddingVertical: 30 }
       }}>
       {/* <BottomTab.Screen
         name="TabOne"
@@ -135,7 +138,8 @@ function BottomTabNavigator() {
         name="Setting"
         component={SettingScreen}
         options={{
-          title: 'Setting',
+          headerLeft: () => <AntDesign name="setting" size={30} color="black" />,
+          title: 'Settings',
           tabBarIcon: ({ color }) => <TabBarIcon name="more-horiz" color={color} />,
         }}
       />

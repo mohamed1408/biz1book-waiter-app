@@ -6,14 +6,14 @@ export default {
     text: '#000',
     background: '#fff',
     tint: tintColorLight,
-    tabIconDefault: '#ccc',
+    tabIconDefault: 'white',
     tabIconSelected: tintColorLight,
   },
   dark: {
     text: '#fff',
     background: '#000',
     tint: tintColorDark,
-    tabIconDefault: '#ccc',
+    tabIconDefault: 'white',
     tabIconSelected: tintColorDark,
   },
 };

@@ -77,6 +77,14 @@ export default function PickupScreen({ navigation }: RootTabScreenProps<'Pickup'
         return options
     }
 
+    async function _viewOrderDetails(order: Order) {
+        await AsyncStorage.setItem(
+            '@order:view',
+            JSON.stringify(order)
+        );
+        navigation.navigate('OrderDetails')
+    }
+
     async function _newOrder() {
         await AsyncStorage.removeItem('@order:edit')
         await AsyncStorage.setItem(
@@ -145,7 +153,8 @@ export default function PickupScreen({ navigation }: RootTabScreenProps<'Pickup'
             >
                 <View style={[{ flex: 2 }]}>
                     {/* <Text>{order.InvoiceNo}</Text> */}
-                    <TouchableOpacity style={[{ marginBottom: 10 }]}>
+                    <TouchableOpacity style={[{ marginBottom: 10 }]}
+                        onPress={() => _viewOrderDetails(item)}>
                         <Text style={[styles.linkText]}>#{order.InvoiceNo}</Text>
                     </TouchableOpacity>
                     <Text>{order.CustomerDetails.PhoneNo}</Text>
