@@ -40,7 +40,6 @@ export default function TakeAwayScreen({ navigation }: RootTabScreenProps<'TakeA
         setOrders(data)
         _eventregistration()
       } catch (error) {
-        // console.log(error)
       }
     };
 
@@ -54,15 +53,12 @@ export default function TakeAwayScreen({ navigation }: RootTabScreenProps<'TakeA
       setOrders(data)
       setRefresState(false)
     } catch (error) {
-      // console.log(error)
       setRefresState(false)
     }
   }
 
   function _eventregistration() {
-    // console.log("event registering ...")
     socket.on("preorder:update", (payload) => {
-      // console.log("preorder:update")
       _getData()
     })
   }
@@ -85,7 +81,7 @@ export default function TakeAwayScreen({ navigation }: RootTabScreenProps<'TakeA
       JSON.stringify(oHelper.neworder(_orderOptions()))
     );
     // socket.emit('order:create', oHelper.newPayload(_orderOptions()))
-    navigation.navigate('Cart',{url:url})
+    navigation.navigate('Cart', { url: url })
   }
 
   async function _editOrder(order: Order) {
@@ -95,7 +91,7 @@ export default function TakeAwayScreen({ navigation }: RootTabScreenProps<'TakeA
       JSON.stringify(order)
     );
     // socket.emit('order:create', oHelper.newPayload(_orderOptions()))
-    navigation.navigate('Cart',{url:url})
+    navigation.navigate('Cart', { url: url })
   }
 
   function _onreferesh() {

@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StatusBar } from 'expo-status-bar';
 import * as React from 'react';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { Platform, SafeAreaView, ScrollView, SectionList, StyleSheet, Dimensions, TouchableOpacity, Image, Modal, TextInput, Vibration } from 'react-native';
+import { Platform, SafeAreaView, ScrollView, SectionList, StyleSheet, Dimensions, TouchableOpacity, Image, Modal, TextInput, Vibration, FlatList } from 'react-native';
 import { Badge, BottomSheet, Button, ListItem, SearchBar } from "react-native-elements";
 import { AntDesign, EvilIcons, FontAwesome, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import moment from 'moment'
@@ -17,6 +17,7 @@ import oHelper from '../utils/orderHelper'
 import { SocketContext } from '../contexts/context'
 import { Socket } from 'socket.io-client';
 import Api from '../utils/Api';
+import { filter } from 'lodash';
 
 interface IProps {
     navigation: any
@@ -38,12 +39,21 @@ interface IState {
     searchText: string
     trigger: boolean
     modalVisible: boolean
-    pickerOptions: any
+    pickerOptions: any,
+    filteredData: any,
+    categoryId: number
+}
+const ptImages: any = {
+    "1": images.veg,
+    "2": images.non_veg,
+    "3": images.egg,
+    "4": images.none
 }
 
 class Cart extends React.Component<IProps, IState> {
     static contextType = SocketContext
     sectionList: any
+
     constructor(props: IProps) {
         super(props);
 
@@ -53,6 +63,9 @@ class Cart extends React.Component<IProps, IState> {
         this._scrollTo = this._scrollTo.bind(this)
         this._itemSeparator = this._itemSeparator.bind(this)
         this._setCustomerDetails = this._setCustomerDetails.bind(this)
+        this._setcatId = this._setcatId.bind(this)
+        this._categoryCard = this._categoryCard.bind(this)
+        this._cartItem = this._cartItem.bind(this)
         this.setDeliveryDate = this.setDeliveryDate.bind(this)
         // this._sectionSeparator = this._sectionSeparator.bind(this)
 
@@ -92,7 +105,9 @@ class Cart extends React.Component<IProps, IState> {
             },
             searchText: '',
             modalVisible: false,
-            pickerOptions: {}
+            pickerOptions: {},
+            filteredData: [],
+            categoryId: 0
         }
     }
 
@@ -102,7 +117,6 @@ class Cart extends React.Component<IProps, IState> {
         const proddata = await (await Api.getproducts(new URL('getdbdata', url).href)).data
         const orderData: string = await AsyncStorage.getItem('@order:edit') || '{}'
         const order: Order = JSON.parse(orderData)
-        // console.log(order.diningtablekey, order.UserName, order.Items.length)
         var categories: any = proddata.category.filter((x: any) => x.ParentId != 0)
         var product = proddata.product
         product.forEach((pd: any) => {
@@ -133,8 +147,8 @@ class Cart extends React.Component<IProps, IState> {
         payload.CustomerDetails = order.CustomerDetails
         payload.DeliveryDateTime = order.DeliveryDateTime
         payload.Items = order.Items
-        this.setState({ products: product, cartData: categories, payload: payload, screenHeight: Dimensions.get('window').height, screenWidth: Dimensions.get('window').width })
-        // console.log(order.OrderTypeId, options.typeid, this.state.payload.OrderTypeId)
+        this.setState({ products: product, filteredData: categories, cartData: categories, payload: payload, screenHeight: Dimensions.get('window').height, screenWidth: Dimensions.get('window').width })
+        // console.log(this.state.cartData[0])
     }
 
     // async _openClock() {
@@ -201,6 +215,59 @@ class Cart extends React.Component<IProps, IState> {
         else
             return (<View></View>)
     }
+
+    _cartItem({ item, index }: any) {
+        return (
+            <View style={styles.item}>
+                <View style={[{ flex: 3 }]}>
+                    <Image
+                        style={[{ width: 15, height: 15, marginBottom: 3 }]}
+                        source={ptImages[item.ProductTypeId.toString()]}
+                    />
+                    <Text style={[{ fontWeight: 'bold', flex: 10, paddingBottom: 5 }]}>{item.Product}</Text>
+                    <Text style={[{ fontWeight: '100', flex: 1 }]}>₹ {item.Price}</Text>
+                </View>
+                <View style={[{ flex: 1, justifyContent: 'center' }]}>
+                    {(!item.Quantity)
+                        ?
+                        <TouchableOpacity
+                            style={[{ borderWidth: 1, borderColor: '#dadde2', backgroundColor: 'white', elevation: 5, alignSelf: 'center', width: this.state.screenWidth * 0.25, paddingHorizontal: 5, paddingVertical: 10, borderRadius: 5 }]}
+                            onPress={() => this._addItem(item, 'null')}
+                        >
+                            <Text style={[{ fontSize: 15, fontWeight: 'bold', color: 'green', alignSelf: 'center' }]}>ADD</Text>
+                        </TouchableOpacity>
+                        : <View
+                            style={[{ borderWidth: 1, borderColor: '#dadde2', backgroundColor: 'white', elevation: 5, alignSelf: 'center', width: this.state.screenWidth * 0.25, borderRadius: 5, flexDirection: 'row' }]}>
+                            <TouchableOpacity
+                                style={[{ flex: 1, paddingVertical: 10, paddingLeft: 3 }]}
+                                onPress={() => this._addItem(item, 'minus')}>
+                                <AntDesign size={20} name="minus" color="#d5d5d6" style={[{ marginRight: 10, alignSelf: 'center' }]} />
+                            </TouchableOpacity>
+                            <Text style={[{ alignSelf: 'center', position: 'absolute', fontSize: 15, left: '40%' }]}>{item.Quantity}</Text>
+                            <TouchableOpacity
+                                style={[{ flex: 1, paddingVertical: 10 }]}
+                                onPress={() => this._addItem(item, 'plus')}>
+                                <AntDesign size={20} name="plus" color="green" style={[{ marginRight: 10, alignSelf: 'center' }]} />
+                            </TouchableOpacity>
+                        </View>
+                    }
+                </View>
+            </View>
+        )
+    }
+
+    _categoryCard({ item }: { item: any }) {
+        return (
+            <TouchableOpacity style={{ padding: 10, marginHorizontal: 5, borderRadius: 50, backgroundColor: 'white', elevation: 3 }}
+                onPress={() => this._setcatId(item.Id)}>
+                <Text style={{ color: this.state.categoryId == item.Id ? '#bb86fc' : 'black' }}>{item.Category}</Text>
+            </TouchableOpacity>
+        )
+    }
+    _setcatId(id: number) {
+        // this.setState({ categoryId: id })
+        this._searchFilter(this.state.searchText, id)
+    }
     // _sectionSeparator(trailing: any) {
     //     if (trailing)
     //         return (<View style={[{ backgroundColor: '#e5eaf0', paddingVertical: 10 }]} />)
@@ -214,7 +281,6 @@ class Cart extends React.Component<IProps, IState> {
             else
                 return (<View></View>)
         } catch (error) {
-            // console.log(error)
             return (<View></View>)
         }
     }
@@ -242,7 +308,6 @@ class Cart extends React.Component<IProps, IState> {
         else return false
     }
     _scrollTo(cat_index: number, prod_index: number) {
-        // console.log(cat_index, prod_index)
         this.sectionList.scrollToLocation(
             {
                 sectionIndex: cat_index,
@@ -252,7 +317,6 @@ class Cart extends React.Component<IProps, IState> {
         this.setState({ isVisible: false })
     }
     _scrollToIndexFailed(error: any) {
-        // console.log(error)
         // const offset = error.averageItemLength * error.index;
         // this.sectionList.scrollToLocation({
         //     sectionIndex: 0,
@@ -275,9 +339,9 @@ class Cart extends React.Component<IProps, IState> {
                 payload.Items.push(oHelper.orderItem(product, 1))
         }
         this.setState({ cartData: this.state.cartData, payload: payload, trigger: !this.state.trigger })
-        this.state.payload.Items.forEach(it => {
-            // console.log(it.Product, it.Quantity, oHelper.orderItem(product, 1).Quantity)
-        })
+        this._searchFilter(this.state.searchText, this.state.categoryId)
+        // this.state.payload.Items.forEach(it => {
+        // })
     }
     _addFromCart(product: OrderItem, qty: number) {
 
@@ -297,7 +361,6 @@ class Cart extends React.Component<IProps, IState> {
     _advancedOrderVal() {
         var val = true
         const { OrderTypeId, CustomerDetails, DeliveryDateTime } = this.state.payload
-        console.log(CustomerDetails?.PhoneNo, DeliveryDateTime)
         if ([2, 3, 4].includes(this.state.payload.OrderTypeId)) {
             if (!CustomerDetails?.PhoneNo) val = false
             if (!DeliveryDateTime) val = false
@@ -306,7 +369,6 @@ class Cart extends React.Component<IProps, IState> {
     }
     _saveOrder(socket: Socket) {
         if (this._advancedOrderVal()) {
-            console.log(this.state.payload.OrderTypeId, this.state.payload.InvoiceNo)
             if ([2, 3, 4].includes(this.state.payload.OrderTypeId) && this.state.payload.InvoiceNo.includes('/'))
                 socket.emit('order:update', this.state.payload)
             else
@@ -324,7 +386,6 @@ class Cart extends React.Component<IProps, IState> {
     }
 
     setDeliveryDate(event: any, selectedDate: any) {
-        console.log(event, selectedDate)
         if (this.state.pickerOptions.mode == 'date' && event.type == 'set') {
             this.state.payload.DeliveryDateTime = moment(selectedDate).format("YYYY-MM-DD") + this.state.payload.DeliveryDateTime
             this.setState({ payload: this.state.payload, pickerOptions: { show: true, mode: 'time' } })
@@ -332,10 +393,8 @@ class Cart extends React.Component<IProps, IState> {
             this.state.payload.DeliveryDateTime = this.state.payload.DeliveryDateTime + ' ' + moment(selectedDate).format("hh:mm")
             this.setState({ payload: this.state.payload, pickerOptions: { show: false, mode: '' } })
         }
-        console.log(this.state.payload.DeliveryDateTime)
     }
     _onLongPress(product: any) {
-        console.log("longPress")
         Vibration.vibrate(70)
         this._addFromCart(product, 0)
     }
@@ -345,6 +404,42 @@ class Cart extends React.Component<IProps, IState> {
         socket.emit('order:clear', payload)
         this.props.navigation.goBack(null);
     }
+    _filter(name: string, text: string) {
+        let pattern = RegExp(text.split(' ').join('.*\\s'), 'ig')
+        return pattern.test(name)
+    }
+    _searchFilter(text: string, categoryId: number) {
+        const { cartData } = this.state
+        let filteredData = JSON.parse(JSON.stringify(cartData))
+        if (text) {
+            filteredData.reduce((result: any, sectionData: any) => {
+                sectionData.data = sectionData.data.filter((x: any) => this._filter(x.Product.toLowerCase(), text))
+                if (sectionData.data.length !== 0) {
+                    result.push(sectionData);
+                }
+                return result;
+            }, [])
+        }
+        if (categoryId > 0) {
+            filteredData = filteredData.filter((x: any) => x.Id == categoryId)
+        }
+        this.setState({ filteredData: filteredData, searchText: text, categoryId: categoryId })
+    }
+
+    // _scrollEvent(event: any, eventName: string) {
+    //     console.log(event, eventName)
+    //     // event.currentTarget.scrollToEnd()
+    // }
+    // _categoryFilter(categoryId: number) {
+    //     const { cartData, categoryId } = this.state
+    //     filteredData.reduce((result: any, sectionData: any) => {
+    //         if (sectionData.Id == categoryId) {
+    //             result.push(sectionData);
+    //         }
+    //         return result;
+    //     }, [])
+    // }
+
     render() {
         const { list, categories, modalVisible } = this.state
         const screenHeight = Dimensions.get('window').height;
@@ -370,21 +465,40 @@ class Cart extends React.Component<IProps, IState> {
                         />}
                     </TouchableOpacity>
                 </View>
+                <View style={[{ flexDirection: 'row' }]}>
+                    <View style={{ flex: 1.5, paddingVertical: 10, alignItems: 'center' }}>
+                        {this._categoryCard({ item: { Id: 0, Category: "All", _id: "all_category_filter" } })}
+                    </View>
+                    <View style={{ flex: 8.5 }}>
+                        <FlatList
+                            contentContainerStyle={{ paddingVertical: 10, marginHorizontal: 5 }}
+                            data={[...this.state.cartData]}
+                            renderItem={this._categoryCard}
+                            keyExtractor={(item) => item._id}
+                            horizontal={true}
+                        // extraData={selectedId}
+                        />
+                    </View>
+                </View>
                 <SearchBar
                     placeholder="Type Here..."
                     platform="android"
-                    onChangeText={(text) => this.setState({ searchText: text.toLowerCase() })}
+                    onChangeText={(text) => {
+                        // this.setState({ searchText: text.toLowerCase() });
+                        this._searchFilter(text.toLowerCase(), this.state.categoryId)
+                    }}
                 />
                 <SectionList
                     ref={(sectionList) => { this.sectionList = sectionList }}
                     style={[{ maxHeight: '80%' }]}
-                    sections={this.state.cartData}
+                    sections={this.state.filteredData}
                     stickySectionHeadersEnabled={true}
                     ItemSeparatorComponent={this._itemSeparator}
                     keyExtractor={(item, index) => item + index}
-                    renderItem={({ item, index }) => <CartItem product={item} searchText={this.state.searchText} addItem={this._addItem} screenWidth={screenWidth} screenHeight={screenHeight} trigger={this.state.trigger} />}
+                    renderItem={({ item, index }) => <CartItem product={item} addItem={this._addItem} screenWidth={screenWidth} screenHeight={screenHeight} trigger={this.state.trigger} />}
+                    // renderItem={this._cartItem}
                     onScrollToIndexFailed={this._scrollToIndexFailed}
-                    // SectionSeparatorComponent={({highlighted, }) => this._sectionSeparator(trailing)}
+                    maxToRenderPerBatch={5}
                     renderSectionHeader={({ section: { Category, Id } }) => this._sectionHeader(Category, Id)}
                 />
                 <Button
@@ -577,12 +691,12 @@ const styles = StyleSheet.create({
         width: '100%',
         alignSelf: 'center'
     },
-    item: {
-        // backgroundColor: "#f9c2ff",
-        padding: 10,
-        marginVertical: 8,
-        flexDirection: 'row'
-    },
+    // item: {
+    //     // backgroundColor: "#f9c2ff",
+    //     padding: 10,
+    //     marginVertical: 8,
+    //     flexDirection: 'row'
+    // },
     header: {
         fontSize: 32,
         fontWeight: 'bold',
@@ -590,7 +704,8 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
         backgroundColor: "white",
         borderTopWidth: 10,
-        borderTopColor: '#f2f2f2'
+        borderTopColor: '#f2f2f2',
+        elevation: 6
     },
     title: {
         fontSize: 24
@@ -640,6 +755,11 @@ const styles = StyleSheet.create({
     linkText: {
         // fontSize: 14,
         color: '#2e78b7',
+    },
+    item: {
+        padding: 10,
+        marginVertical: 8,
+        flexDirection: 'row'
     },
 });
 

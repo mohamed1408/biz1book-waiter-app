@@ -77,8 +77,8 @@ function BottomTabNavigator() {
       screenOptions={{
         tabBarActiveTintColor: Colors[colorScheme].tint,
         tabBarInactiveTintColor: Colors[colorScheme].tabIconDefault,
-        tabBarStyle: { backgroundColor: '#ABD2F0', bottom: 10, marginHorizontal: 20, height: 100, borderRadius: 20 },
-        tabBarItemStyle: { paddingVertical: 30 }
+        tabBarStyle: { backgroundColor: '#ABD2F0', bottom: 3, marginHorizontal: 20, height: 75, borderRadius: 20 },
+        tabBarItemStyle: { paddingVertical: 10 }
       }}>
       {/* <BottomTab.Screen
         name="TabOne"
